@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameLover - Top Up Shop</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+/* VIBRANT PURPLE & YELLOW THEME */
+--primary: #4b0082; /* Indigo/Purple */
+--accent: #ffd700; /* Vibrant Gold/Yellow */
+--bg: #f3e5f5; /* Light Purple Background */
+--text: #333;
+--card-bg: #ffffff;
+--green: #00d26a; /* Success Green */
+}
+
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); }
+
+/* HEADER */
+header { background: var(--primary); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(75, 0, 130, 0.4); position: sticky; top: 0; z-index: 100; }
+
+.brand-name { font-size: 1.8rem; font-weight: 900; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; text-shadow: 2px 2px 0px #000; }
+.logo-area { display: flex; align-items: center; gap: 10px; }
+
+.user-panel { display: flex; align-items: center; gap: 15px; }
+
+/* Balance Badge */
+.balance-box { background: rgba(0,0,0,0.3); color: var(--accent); padding: 5px 15px; border: 1px solid var(--accent); border-radius: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+
+.add-btn { background: var(--accent); color: var(--primary); border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.add-btn:hover { transform: scale(1.1); box-shadow: 0 0 10px var(--accent); }
+
+/* Profile Button */
+.icon-btn { background: none; border: none; cursor: pointer; font-size: 1rem; color: white; display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 5px; font-weight: 600; }
+.icon-btn:hover { background: rgba(255,255,255,0.1); color: var(--accent); }
+.login-btn { border: 2px solid var(--accent); padding: 6px 15px; border-radius: 20px; color: var(--accent); }
+
+/* GRID LAYOUT */
+.container { max-width: 1100px; margin: 30px auto; padding: 20px; }
+.section-title { color: var(--primary); font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--accent); padding-left: 15px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+
+.card { background: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; text-align: center; border: 1px solid transparent; }
+.card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 10px 25px rgba(75, 0, 130, 0.2); }
+.card img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
+.card-body { padding: 15px; }
+.card-title { font-weight: bold; display: block; color: var(--primary); }
+
+/* MODALS */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(3px); align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; position: relative; animation: fadeIn 0.3s; border-top: 5px solid var(--primary); }
+@keyframes fadeIn { from {opacity: 0; transform: scale(0.9);} to {opacity: 1; transform: scale(1);} }
+
+.close { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; color: #888; }
+
+/* Form Elements */
+input { width: 100%; padding: 14px; margin: 8px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; }
+input:focus { border-color: var(--primary); outline: none; }
+
+.btn-primary { width: 100%; padding: 14px; background: var(--primary); color: var(--accent); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1.1rem; margin-top: 15px; transition: 0.3s; }
+.btn-primary:hover { background: #3a006b; box-shadow: 0 5px 15px rgba(75, 0, 130, 0.3); }
+.btn-primary:disabled { background: #ccc; cursor: not-allowed; color: #666; }
+
+/* Price Options */
+.price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+.price-option { border: 2px solid #eee; padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+.price-option:hover { border-color: var(--primary); }
+.price-option.selected { border-color: var(--primary); background: #f3e5f5; color: var(--primary); font-weight: bold; }
+
+/* Profile Styles */
+.profile-avatar { width: 80px; height: 80px; background: var(--bg); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--primary); border: 2px solid var(--accent); }
+.info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+
+/* Auth Tabs */
+.auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+.tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #888; font-weight: 600; }
+.tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo-area">
+<span style="font-size: 2rem;">👾</span>
+<span class="brand-name">GameLover</span>
+</div>
+
+<div class="user-panel">
+<div id="wallet-display" class="balance-box" style="display:none;">
+<span id="balance-text">0 G</span>
+<button class="add-btn" onclick="openDepositModal()" title="Top Up G">+</button>
+</div>
+
+<button id="profile-btn" class="icon-btn" onclick="openProfileModal()" style="display:none;">
+👤 <span id="nav-email">Profile</span>
+</button>
+
+<div id="auth-buttons">
+<span class="icon-btn login-btn" onclick="openAuthModal()">Login / Register</span>
+</div>
+</div>
+</header>
+
+<div class="container">
+<div class="section-title">Browse Games</div>
+<div class="grid" id="game-grid"></div>
+</div>
+
+<div class="modal" id="auth-modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('auth-modal')">&times;</span>
+<div class="auth-tabs">
+<div class="tab active" onclick="switchTab('login')">Login</div>
+<div class="tab" onclick="switchTab('register')">Register</div>
+</div>
+<form id="login-form">
+<input type="email" id="login-email" placeholder="Email Address" required>
+<input type="password" id="login-pass" placeholder="Password" required>
+<button type="submit" class="btn-primary">Login Now</button>
+</form>
+<form id="register-form" style="display:none;">
+<input type="email" id="reg-email" placeholder="Email Address" required>
+<input type="password" id="reg-pass" placeholder="Create Password" required>
+<button type="submit" class="btn-primary">Create Account</button>
+</form>
+</div>
+</div>
+
+<div class="modal" id="deposit-modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('deposit-modal')">&times;</span>
+<h2 style="margin-top:0; color:var(--primary);">Top Up Wallet</h2>
+<p>Current Balance: <span id="deposit-bal" style="color:var(--green); font-weight:bold;">0 G</span></p>
+
+<label>Select Amount:</label>
+<div class="price-grid">
+<div class="price-option" onclick="setDeposit(100)">100 G</div>
+<div class="price-option" onclick="setDeposit(500)">500 G</div>
+<div class="price-option" onclick="setDeposit(1000)">1000 G</div>
+<div class="price-option" onclick="setDeposit(5000)">5000 G</div>
+</div>
+<input type="number" id="deposit-amount" placeholder="Or enter custom amount">
+
+<button class="btn-primary" onclick="submitDeposit()">Request Top Up</button>
+<p style="font-size:0.8rem; color:#666; margin-top:15px; text-align:center;">
+Payment instructions will appear after request.
+</p>
+</div>
+</div>
+
+<div class="modal" id="game-modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('game-modal')">&times;</span>
+<h2 id="modal-game-name" style="margin-top:0; color:var(--primary);">Game Name</h2>
+
+<label><b>1. Player ID (UID)</b></label>
+<input type="text" id="player-id" placeholder="Enter UID">
+
+<div id="server-section">
+<label style="margin-top:10px; display:block;"><b>2. Server / Zone ID</b></label>
+<input type="text" id="server-id" placeholder="e.g. Asia or 1234">
+</div>
+
+<label style="margin-top:15px; display:block;"><b>3. Select Item</b></label>
+<div class="price-grid" id="item-options"></div>
+
+<button class="btn-primary" onclick="submitOrder()">Pay with G Currency</button>
+</div>
+</div>
+
+<div class="modal" id="profile-modal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('profile-modal')">&times;</span>
+<div style="text-align:center; margin-bottom:20px;">
+<div class="profile-avatar">👤</div>
+<h3 id="profile-email-disp" style="margin:5px 0;">user@email.com</h3>
+<span style="background:var(--accent); color:var(--primary); padding:3px 10px; border-radius:10px; font-size:0.8rem; font-weight:bold;">GameLover Member</span>
+</div>
+<div class="info-row">
+<span style="color:#888;">User UID:</span>
+<span id="profile-uid" style="font-size:0.8rem; font-family:monospace;">...</span>
+</div>
+<div class="info-row">
+<span style="color:#888;">Wallet Balance:</span>
+<span id="profile-bal" style="color:var(--green); font-weight:bold; font-size:1.1rem;">0 G</span>
+</div>
+<button class="btn-primary" style="background:#555; margin-top:20px;" onclick="auth.signOut(); location.reload();">Log Out</button>
+</div>
+</div>
+
+<script>
+// --- FIREBASE CONFIGURATION (PASTE YOUR KEYS HERE) ---
+const firebaseConfig = {
+apiKey: "AIzaSyBZoKyWmeNSELvqVm8barRKp3alPy-GdGk",
+authDomain: "gamelovershop-d3b47.firebaseapp.com",
+projectId: "gamelovershop-d3b47",
+storageBucket: "gamelovershop-d3b47.firebasestorage.app",
+messagingSenderId: "782424722391",
+appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
+};
+
+// B. MAKE.COM WEBHOOK URL (For the Robot)
+const ROBOT_URL = "https://hook.us1.make.com/YOUR_WEBHOOK_URL_HERE";
+
+// --------------------------------------------------
+
+// Init Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Variables
+let currentUser = null;
+let currentBalance = 0;
+let selectedGame = null;
+let selectedPrice = 0;
+let selectedItemName = "";
+
+// --- GAME DATA LIST (Updated for Zone/No Zone) ---
+const games = [
+// GAMES WITH ZONES (Servers)
+{
+name: "Genshin Impact", image: "gim.jpg", hasZone: true,
+items: [{name: "60 Crystals", price: 100, prodId: "1234"}, {name: "300 Crystals", price: 500, prodId: "5678"}]
+},
+{
+name: "Honkai: Star Rail", image: "hsr.jpg", hasZone: true,
+items: [{name: "60 Shards", price: 100, prodId: "2233"}, {name: "Express Pass", price: 550, prodId: "4455"}]
+},
+{
+name: "Zenless Zone Zero", image: "zen.jpg", hasZone: true,
+items: [{name: "60 Monochrome", price: 100, prodId: "8899"}, {name: "Inter-Knot", price: 550, prodId: "9900"}]
+},
+// GAMES WITHOUT ZONES (Just UID)
+{
+name: "AFK Journey", image: "afk-journey.jpg", hasZone: false,
+items: [{name: "Dragon Crystals", price: 200, prodId: "7777"}, {name: "Growth Bundle", price: 1000, prodId: "8888"}]
+},
+{
+name: "Where Winds Meet", image: "wwm.jpg", hasZone: false,
+items: [{name: "Monthly Pass", price: 23000, prodId: "1111"}, {name: "Elite Battle Pass", price: 46000, prodId: "2222"}, {name: "Premium Battle Pass", price: 87500, prodId: "3333"}, {name: "60 Echo Beads", price: 4500, prodId: "4444"}, {name: "300 Echo Beads", price: 26000, prodId: "5555"}, {name: "1800 Echo Beads", price: 128000, prodId: "6666"}]
+}
+];
+
+// --- RENDERING ---
+const grid = document.getElementById('game-grid');
+games.forEach((game, idx) => {
+const card = document.createElement('div');
+card.className = 'card';
+card.innerHTML = `<img src="${game.image}" alt="${game.name}"><div class="card-body"><span class="card-title">${game.name}</span></div>`;
+card.onclick = () => openGameModal(idx);
+grid.appendChild(card);
+});
+
+// --- AUTH LOGIC ---
+auth.onAuthStateChanged(user => {
+currentUser = user;
+if(user) {
+document.getElementById('auth-buttons').style.display = 'none';
+document.getElementById('wallet-display').style.display = 'flex';
+document.getElementById('profile-btn').style.display = 'flex';
+document.getElementById('nav-email').innerText = user.email.split('@')[0];
+
+// Listen to Balance
+db.collection("users").doc(user.uid).onSnapshot(doc => {
+if(doc.exists) {
+currentBalance = doc.data().balance || 0;
+document.getElementById('balance-text').innerText = currentBalance + " G";
+} else {
+db.collection("users").doc(user.uid).set({balance: 0, email: user.email});
+}
+});
+}
+});
+
+// --- DEPOSIT (TOP UP) LOGIC ---
+function setDeposit(amount) { document.getElementById('deposit-amount').value = amount; }
+
+async function submitDeposit() {
+if(!currentUser) return alert("Please Login First");
+const amount = parseInt(document.getElementById('deposit-amount').value);
+if(!amount || amount <= 0) return alert("Invalid Amount");
+
+try {
+// Create Request
+await db.collection("requests").add({
+userId: currentUser.uid,
+email: currentUser.email,
+type: "DEPOSIT",
+amount: amount,
+status: "PENDING",
+timestamp: firebase.firestore.FieldValue.serverTimestamp()
+});
+alert(`Request Sent! \n\nPlease transfer ${amount} MMK to KPay: 09767139991. \nAdmin will approve shortly.`);
+closeModal('deposit-modal');
+} catch(e) { alert("Error: " + e.message); }
+}
+
+// --- GAME ORDER LOGIC ---
+function openGameModal(idx) {
+selectedGame = games[idx];
+document.getElementById('modal-game-name').innerText = selectedGame.name;
+
+// Show/Hide Server Box based on game
+const srvSection = document.getElementById('server-section');
+const srvInput = document.getElementById('server-id');
+if(selectedGame.hasZone) {
+srvSection.style.display = 'block';
+srvInput.value = "";
+} else {
+srvSection.style.display = 'none';
+srvInput.value = "";
+}
+
+// Render Prices
+const container = document.getElementById('item-options');
+container.innerHTML = '';
+selectedPrice = 0;
+selectedItemName = "";
+
+selectedGame.items.forEach(item => {
+const div = document.createElement('div');
+div.className = 'price-option';
+div.innerHTML = `<b>${item.name}</b><br>${item.price} G`;
+div.onclick = function() {
+document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+div.classList.add('selected');
+selectedPrice = item.price;
+selectedItemName = item.name;
+};
+container.appendChild(div);
+});
+document.getElementById('game-modal').style.display = 'flex';
+}
+
+async function submitOrder() {
+if(!currentUser) return alert("Please Login First");
+if(selectedPrice === 0) return alert("Please select an item");
+
+const uid = document.getElementById('player-id').value;
+const zone = document.getElementById('server-id').value;
+
+if(!uid) return alert("Please enter Player ID");
+// Only require zone if game needs it
+if(selectedGame.hasZone && !zone) return alert("This game requires a Server ID!");
+
+if(currentBalance < selectedPrice) return alert("Insufficient G Balance! Please Top Up.");
+if(!confirm(`Confirm buy ${selectedItemName} for ${selectedPrice} G?`)) return;
+
+try {
+const btn = document.querySelector('#game-modal .btn-primary');
+btn.innerText = "Processing...";
+btn.disabled = true;
+
+// 1. Send Signal to Make.com Robot
+const response = await fetch(ROBOT_URL, {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+userId: currentUser.uid,
+game: selectedGame.name,
+itemId: selectedGame.items.find(i => i.name === selectedItemName).prodId,
+itemName: selectedItemName,
+price: selectedPrice,
+playerId: uid,
+zoneId: zone,
+orderId: "ORD-" + Date.now()
+})
+});
+
+if(response.ok) {
+alert("Success! The system is sending your items now.");
+closeModal('game-modal');
+} else {
+alert("System busy. Please try again.");
+}
+} catch(e) {
+alert("Error: " + e.message);
+} finally {
+const btn = document.querySelector('#game-modal .btn-primary');
+btn.innerText = "Pay with G Currency";
+btn.disabled = false;
+}
+}
+
+// --- UTILS & PROFILE ---
+function openProfileModal() {
+document.getElementById('profile-email-disp').innerText = currentUser.email;
+document.getElementById('profile-uid').innerText = currentUser.uid;
+document.getElementById('profile-bal').innerText = currentBalance + " G";
+document.getElementById('profile-modal').style.display = 'flex';
+}
+
+function openAuthModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+function openDepositModal() {
+document.getElementById('deposit-bal').innerText = currentBalance + " G";
+document.getElementById('deposit-modal').style.display = 'flex';
+}
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function switchTab(t) {
+document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+if(t=='login') {
+document.getElementById('login-form').style.display='block';
+document.getElementById('register-form').style.display='none';
+document.querySelector('.tab:first-child').classList.add('active');
+} else {
+document.getElementById('login-form').style.display='none';
+document.getElementById('register-form').style.display='block';
+document.querySelector('.tab:last-child').classList.add('active');
+}
+}
+
+document.getElementById('login-form').onsubmit = (e) => {
+e.preventDefault();
+auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-pass').value)
+.then(() => closeModal('auth-modal')).catch(e => alert(e.message));
+}
+document.getElementById('register-form').onsubmit = (e) => {
+e.preventDefault();
+auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, document.getElementById('reg-pass').value)
+.then(() => closeModal('auth-modal')).catch(e => alert(e.message));
+}
+</script>
+
+</body>
+</html>

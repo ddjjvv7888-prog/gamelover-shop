@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GameLover Admin</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+<style>
+body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+.container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; border-top: 5px solid #4b0082; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+h1 { color: #4b0082; margin-top: 0; }
+
+.card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: white; }
+.deposit-card { border-left: 5px solid #00d26a; background: #f0fff4; }
+
+button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 5px; }
+.btn-approve { background: #00d26a; color: white; }
+.btn-reject { background: #ff4757; color: white; }
+.badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; color: white; font-weight: bold; }
+.badge-dep { background: #00d26a; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>👾 Owner Dashboard</h1>
+
+<div id="login-screen">
+<p>Restricted Area. Please Login.</p>
+<input type="email" id="admin-email" placeholder="Admin Email" style="padding:10px; width: 60%;">
+<input type="password" id="admin-pass" placeholder="Password" style="padding:10px; width: 60%; margin-top:5px;">
+<button onclick="adminLogin()" style="background:#4b0082; color:white; padding:10px 20px;">Login</button>
+</div>
+
+<div id="dashboard-screen" style="display:none;">
+<h3>Pending Deposits (Money In)</h3>
+<div id="request-list">Loading...</div>
+</div>
+</div>
+
+<script>
+// --- FIREBASE CONFIGURATION (PASTE YOUR KEYS HERE) ---
+const firebaseConfig = {
+apiKey: "AIzaSyBZoKyWmeNSELvqVm8barRKp3alPy-GdGk",
+authDomain: "gamelovershop-d3b47.firebaseapp.com",
+projectId: "gamelovershop-d3b47",
+storageBucket: "gamelovershop-d3b47.firebasestorage.app",
+messagingSenderId: "782424722391",
+appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+auth.onAuthStateChanged(user => {
+if(user) {
+document.getElementById('login-screen').style.display = 'none';
+document.getElementById('dashboard-screen').style.display = 'block';
+loadRequests();
+}
+});
+
+function adminLogin() {
+auth.signInWithEmailAndPassword(document.getElementById('admin-email').value, document.getElementById('admin-pass').value)
+.catch(alert);
+}
+
+function loadRequests() {
+// Only load PENDING DEPOSITS
+db.collection("requests").where("status", "==", "PENDING").where("type", "==", "DEPOSIT")
+.onSnapshot(snapshot => {
+const list = document.getElementById('request-list');
+list.innerHTML = "";
+if(snapshot.empty) { list.innerHTML = "<p>No pending deposits.</p>"; return; }
+
+snapshot.forEach(doc => {
+const data = doc.data();
+const div = document.createElement('div');
+div.className = 'card deposit-card';
+div.innerHTML = `
+<div>
+<span class="badge badge-dep">DEPOSIT</span> <strong>${data.email}</strong><br>
+Sent you: <b style="color:#00d26a; font-size:1.2rem;">${data.amount} MMK</b>
+</div>
+<div>
+<button class="btn-approve" onclick="approveDeposit('${doc.id}', '${data.userId}', ${data.amount})">✔ Confirm Received</button>
+<button class="btn-reject" onclick="rejectReq('${doc.id}')">✖ Reject</button>
+</div>
+`;
+list.appendChild(div);
+});
+});
+}
+
+async function approveDeposit(reqId, userId, amount) {
+if(!confirm(`Did you receive ${amount} MMK in your Bank?`)) return;
+try {
+const userRef = db.collection("users").doc(userId);
+await db.runTransaction(async (t) => {
+const doc = await t.get(userRef);
+const newBal = (doc.data()?.balance || 0) + amount; // 1 MMK = 1 G (Modify if different)
+t.set(userRef, { balance: newBal, email: userId }, { merge: true });
+t.update(db.collection("requests").doc(reqId), { status: "COMPLETED" });
+});
+alert("Success! User Balance Updated.");
+} catch(e) { alert("Error: " + e.message); }
+}
+
+function rejectReq(id) {
+if(confirm("Delete this request?")) db.collection("requests").doc(id).delete();
+}
+</script>
+</body>
+</html>
