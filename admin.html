@@ -1,43 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>GameLover Admin</title>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <meta charset="UTF-8">
+    <title>GameLover Admin Pro</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-<style>
-body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-.container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; border-top: 5px solid #4b0082; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-h1 { color: #4b0082; margin-top: 0; }
+    <style>
+        :root { --primary: #4b0082; --accent: #ffd700; --bg: #f4f6f8; --green: #2ecc71; --red: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
+        
+        /* Header */
+        header { background: var(--primary); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        
+        /* Search Bar */
+        .search-box { padding: 15px; border-bottom: 1px solid #eee; background: #fff; display: flex; gap: 10px; }
+        .search-box input { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 6px; font-size: 1rem; }
+        .search-box input:focus { outline: none; border-color: var(--primary); }
 
-.card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: white; }
-.deposit-card { border-left: 5px solid #00d26a; background: #f0fff4; }
+        /* Tabs */
+        .tabs { display: flex; background: #eee; cursor: pointer; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; color: #777; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab:hover { background: #ddd; }
+        .tab.active { background: white; color: var(--primary); border-bottom-color: var(--primary); }
+        .badge { background: var(--red); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem; margin-left: 5px; }
 
-button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 5px; }
-.btn-approve { background: #00d26a; color: white; }
-.btn-reject { background: #ff4757; color: white; }
-.badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; color: white; font-weight: bold; }
-.badge-dep { background: #00d26a; }
-</style>
+        /* Lists */
+        .panel { display: none; padding: 20px; }
+        .panel.active { display: block; }
+        
+        .card { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ccc; transition: 0.2s; }
+        .card:hover { transform: translateX(5px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        
+        .card.deposit { border-left-color: var(--green); }
+        .card.order { border-left-color: var(--primary); }
+
+        .info h4 { margin: 0 0 5px 0; color: #333; }
+        .info p { margin: 0; color: #666; font-size: 0.9rem; }
+        .meta { font-family: monospace; color: #888; background: #eee; padding: 2px 5px; border-radius: 4px; }
+        
+        .actions { display: flex; gap: 5px; }
+        button { border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-approve { background: var(--green); }
+        .btn-reject { background: var(--red); }
+        .btn-copy { background: #3498db; }
+
+        /* Login */
+        #login-screen { text-align: center; padding: 50px; }
+        #login-screen input { padding: 10px; width: 60%; margin: 10px 0; display: block; margin-left: auto; margin-right: auto; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-<h1>👾 Owner Dashboard</h1>
+    <header>
+        <h1><i class="fas fa-user-shield"></i> Owner Dashboard</h1>
+        <button onclick="auth.signOut(); location.reload();" style="background:rgba(255,255,255,0.2);">Log Out</button>
+    </header>
 
-<div id="login-screen">
-<p>Restricted Area. Please Login.</p>
-<input type="email" id="admin-email" placeholder="Admin Email" style="padding:10px; width: 60%;">
-<input type="password" id="admin-pass" placeholder="Password" style="padding:10px; width: 60%; margin-top:5px;">
-<button onclick="adminLogin()" style="background:#4b0082; color:white; padding:10px 20px;">Login</button>
-</div>
+    <div id="login-screen">
+        <h2>Restricted Access</h2>
+        <input type="email" id="admin-email" placeholder="Admin Email">
+        <input type="password" id="admin-pass" placeholder="Password">
+        <button onclick="adminLogin()" style="background:var(--primary); width: 62%; padding: 12px;">Login</button>
+    </div>
 
-<div id="dashboard-screen" style="display:none;">
-<h3>Pending Deposits (Money In)</h3>
-<div id="request-list">Loading...</div>
-</div>
+    <div id="dashboard-screen" style="display:none;">
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by Email, UID, or Ref No..." onkeyup="filterList()">
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('deposits')">
+                💰 Deposits <span id="dep-count" class="badge">0</span>
+            </div>
+            <div class="tab" onclick="switchTab('orders')">
+                🎮 Orders <span id="ord-count" class="badge">0</span>
+            </div>
+        </div>
+
+        <div id="panel-deposits" class="panel active">
+            <p style="color:#666; font-style:italic;">Check your Bank App for these Transaction IDs before approving.</p>
+            <div id="deposit-list">Loading...</div>
+        </div>
+
+        <div id="panel-orders" class="panel">
+            <p style="color:#666; font-style:italic;">Purchase these items in MooGold/Supplier and mark as Done.</p>
+            <div id="order-list">Loading...</div>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -51,67 +110,133 @@ messagingSenderId: "782424722391",
 appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-auth.onAuthStateChanged(user => {
-if(user) {
-document.getElementById('login-screen').style.display = 'none';
-document.getElementById('dashboard-screen').style.display = 'block';
-loadRequests();
-}
-});
+    // --- AUTH ---
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard-screen').style.display = 'block';
+            loadData();
+        }
+    });
 
-function adminLogin() {
-auth.signInWithEmailAndPassword(document.getElementById('admin-email').value, document.getElementById('admin-pass').value)
-.catch(alert);
-}
+    function adminLogin() {
+        const e = document.getElementById('admin-email').value;
+        const p = document.getElementById('admin-pass').value;
+        auth.signInWithEmailAndPassword(e, p).catch(err => alert("Login Failed: " + err.message));
+    }
 
-function loadRequests() {
-// Only load PENDING DEPOSITS
-db.collection("requests").where("status", "==", "PENDING").where("type", "==", "DEPOSIT")
-.onSnapshot(snapshot => {
-const list = document.getElementById('request-list');
-list.innerHTML = "";
-if(snapshot.empty) { list.innerHTML = "<p>No pending deposits.</p>"; return; }
+    // --- TABS LOGIC ---
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        
+        if(tabName === 'deposits') {
+            document.querySelector('.tab:nth-child(1)').classList.add('active');
+            document.getElementById('panel-deposits').classList.add('active');
+        } else {
+            document.querySelector('.tab:nth-child(2)').classList.add('active');
+            document.getElementById('panel-orders').classList.add('active');
+        }
+    }
 
-snapshot.forEach(doc => {
-const data = doc.data();
-const div = document.createElement('div');
-div.className = 'card deposit-card';
-div.innerHTML = `
-<div>
-<span class="badge badge-dep">DEPOSIT</span> <strong>${data.email}</strong><br>
-Sent you: <b style="color:#00d26a; font-size:1.2rem;">${data.amount} MMK</b>
-</div>
-<div>
-<button class="btn-approve" onclick="approveDeposit('${doc.id}', '${data.userId}', ${data.amount})">✔ Confirm Received</button>
-<button class="btn-reject" onclick="rejectReq('${doc.id}')">✖ Reject</button>
-</div>
-`;
-list.appendChild(div);
-});
-});
-}
+    // --- LOAD DATA ---
+    function loadData() {
+        // Load Deposits
+        db.collection("requests").where("type", "==", "DEPOSIT").where("status", "==", "PENDING")
+        .onSnapshot(snap => {
+            const list = document.getElementById('deposit-list');
+            document.getElementById('dep-count').innerText = snap.size;
+            list.innerHTML = "";
+            if(snap.empty) list.innerHTML = "<p>No pending deposits.</p>";
+            
+            snap.forEach(doc => {
+                const d = doc.data();
+                const card = document.createElement('div');
+                card.className = 'card deposit search-item';
+                card.innerHTML = `
+                    <div class="info">
+                        <h4>${d.email}</h4>
+                        <p>Request: <b style="color:var(--green)">+${d.amount} G</b></p>
+                        <span class="meta">Ref: ${d.refNo || "No Ref"}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-approve" onclick="approveDeposit('${doc.id}', '${d.userId}', ${d.amount})">✔ Confirm</button>
+                        <button class="btn-reject" onclick="deleteReq('${doc.id}')">✖</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        });
 
-async function approveDeposit(reqId, userId, amount) {
-if(!confirm(`Did you receive ${amount} MMK in your Bank?`)) return;
-try {
-const userRef = db.collection("users").doc(userId);
-await db.runTransaction(async (t) => {
-const doc = await t.get(userRef);
-const newBal = (doc.data()?.balance || 0) + amount; // 1 MMK = 1 G (Modify if different)
-t.set(userRef, { balance: newBal, email: userId }, { merge: true });
-t.update(db.collection("requests").doc(reqId), { status: "COMPLETED" });
-});
-alert("Success! User Balance Updated.");
-} catch(e) { alert("Error: " + e.message); }
-}
+        // Load Orders
+        db.collection("requests").where("type", "==", "ORDER").where("status", "==", "PROCESSING") // Or PENDING
+        .onSnapshot(snap => {
+            const list = document.getElementById('order-list');
+            document.getElementById('ord-count').innerText = snap.size;
+            list.innerHTML = "";
+            if(snap.empty) list.innerHTML = "<p>No pending orders.</p>";
 
-function rejectReq(id) {
-if(confirm("Delete this request?")) db.collection("requests").doc(id).delete();
-}
+            snap.forEach(doc => {
+                const d = doc.data();
+                const card = document.createElement('div');
+                card.className = 'card order search-item';
+                card.innerHTML = `
+                    <div class="info">
+                        <h4>${d.game} - ${d.item}</h4>
+                        <p>User: ${d.email}</p>
+                        <p class="meta">UID: ${d.playerId} | Zone: ${d.zoneId}</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-copy" onclick="navigator.clipboard.writeText('${d.playerId}')">Copy UID</button>
+                        <button class="btn-approve" onclick="completeOrder('${doc.id}')">✔ Done</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        });
+    }
+
+    // --- SEARCH FILTER ---
+    function filterList() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.search-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    }
+
+    // --- ACTIONS ---
+    async function approveDeposit(reqId, userId, amount) {
+        if(!confirm(`Confirm Ref matches Bank? Add ${amount} G?`)) return;
+        try {
+            const userRef = db.collection("users").doc(userId);
+            await db.runTransaction(async (t) => {
+                const doc = await t.get(userRef);
+                const oldBal = Number(doc.data()?.balance || 0);
+                const newBal = oldBal + Number(amount);
+                t.set(userRef, { balance: newBal, email: userId }, { merge: true });
+                t.update(db.collection("requests").doc(reqId), { status: "COMPLETED" });
+            });
+            alert("Balance Updated!");
+        } catch(e) { alert("Error: " + e.message); }
+    }
+
+    function completeOrder(reqId) {
+        if(confirm("Have you sent the items?")) {
+            db.collection("requests").doc(reqId).update({ status: "COMPLETED" });
+        }
+    }
+
+    function deleteReq(reqId) {
+        if(confirm("Reject and Delete this request?")) {
+            db.collection("requests").doc(reqId).delete();
+        }
+    }
 </script>
+
 </body>
 </html>
