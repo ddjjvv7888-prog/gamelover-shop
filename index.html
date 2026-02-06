@@ -339,7 +339,6 @@ container.appendChild(div);
 });
 document.getElementById('game-modal').style.display = 'flex';
 }
-
 async function submitOrder() {
         if(!currentUser) return alert("Please Login First");
         if(selectedPrice === 0) return alert("Please select an item");
@@ -351,19 +350,23 @@ async function submitOrder() {
         if(selectedGame.hasZone && !zone) return alert("This game requires a Server ID!");
         if(currentBalance < selectedPrice) return alert("Insufficient G Balance!");
 
-        if(!confirm(`Buy ${selectedItemName} for ${selectedPrice} G?`)) return;
+        // REMOVED THE POPUP LINE HERE
 
-        // --- 1. PASTE YOUR COPIED URL INSIDE THE QUOTES BELOW ---
         const ROBOT_URL = "https://hook.us2.make.com/w3svq7h6rxnmex6f9h12c4dqhmnb6kbf"; 
-        // -------------------------------------------------------
 
         try {
             const btn = document.querySelector('#game-modal .btn-primary');
-            btn.innerText = "Connecting to Robot...";
+            const originalText = btn.innerText; // Save old text
+            btn.innerText = "Paying...";       // Show status on button
             btn.disabled = true;
 
-            // 2. SEND DATA TO MAKE.COM
-            const response = await fetch(ROBOT_URL, {
+            // 1. DEDUCT MONEY
+            await db.collection("users").doc(currentUser.uid).update({
+                balance: firebase.firestore.FieldValue.increment(-selectedPrice)
+            });
+
+            // 2. SEND TO ROBOT
+            fetch(ROBOT_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -377,36 +380,32 @@ async function submitOrder() {
                     zoneId: zone || "N/A",
                     orderId: "ORD-" + Date.now()
                 })
+            }).catch(e => console.log("Robot signal sent"));
+
+            // 3. SAVE RECORD
+            await db.collection("requests").add({
+                userId: currentUser.uid,
+                email: currentUser.email,
+                type: "ORDER",
+                game: selectedGame.name,
+                item: selectedItemName,
+                price: selectedPrice,
+                playerId: uid,
+                zoneId: zone || "N/A",
+                status: "PROCESSING",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            if(response.ok) {
-                // 3. ALSO SAVE TO FIREBASE (For your Admin Dashboard Record)
-                await db.collection("requests").add({
-                    userId: currentUser.uid,
-                    email: currentUser.email,
-                    type: "ORDER",
-                    game: selectedGame.name,
-                    item: selectedItemName,
-                    price: selectedPrice,
-                    playerId: uid,
-                    zoneId: zone || "N/A",
-                    status: "ROBOT_PROCESSING",
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                alert("Success! Robot has received your order.");
-                closeModal('game-modal');
-            } else {
-                throw new Error("Robot did not answer.");
-            }
+            // Success message (No choice popup)
+            alert(`Payment Successful! \n\n${selectedPrice} G deducted.\nYour items will arrive shortly.`);
+            closeModal('game-modal');
 
         } catch(e) { 
             console.error(e);
-            alert("Connection Failed. Trying Manual Mode...");
-            // Fallback logic could go here, but for now just alert
+            alert("Error: " + e.message);
         } finally {
             const btn = document.querySelector('#game-modal .btn-primary');
-            btn.innerText = "Pay with G Currency";
+            btn.innerText = "Pay with G Currency"; // Reset button
             btn.disabled = false;
         }
     }
@@ -453,5 +452,6 @@ auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, 
 </body>
 
 </html>
+
 
 
