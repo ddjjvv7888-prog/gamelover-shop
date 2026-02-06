@@ -341,55 +341,75 @@ document.getElementById('game-modal').style.display = 'flex';
 }
 
 async function submitOrder() {
-if(!currentUser) return alert("Please Login First");
-if(selectedPrice === 0) return alert("Please select an item");
+        if(!currentUser) return alert("Please Login First");
+        if(selectedPrice === 0) return alert("Please select an item");
+        
+        const uid = document.getElementById('player-id').value;
+        const zone = document.getElementById('server-id').value;
 
-const uid = document.getElementById('player-id').value;
-const zone = document.getElementById('server-id').value;
+        if(!uid) return alert("Please enter Player ID");
+        if(selectedGame.hasZone && !zone) return alert("This game requires a Server ID!");
+        if(currentBalance < selectedPrice) return alert("Insufficient G Balance!");
 
-if(!uid) return alert("Please enter Player ID");
-// Only require zone if game needs it
-if(selectedGame.hasZone && !zone) return alert("This game requires a Server ID!");
+        if(!confirm(`Buy ${selectedItemName} for ${selectedPrice} G?`)) return;
 
-if(currentBalance < selectedPrice) return alert("Insufficient G Balance! Please Top Up.");
-if(!confirm(`Confirm buy ${selectedItemName} for ${selectedPrice} G?`)) return;
+        // --- 1. PASTE YOUR COPIED URL INSIDE THE QUOTES BELOW ---
+        const ROBOT_URL = "https://hook.us1.make.com/PASTE_YOUR_MAKE_URL_HERE"; 
+        // -------------------------------------------------------
 
-try {
-const btn = document.querySelector('#game-modal .btn-primary');
-btn.innerText = "Processing...";
-btn.disabled = true;
+        try {
+            const btn = document.querySelector('#game-modal .btn-primary');
+            btn.innerText = "Connecting to Robot...";
+            btn.disabled = true;
 
-// 1. Send Signal to Make.com Robot
-const response = await fetch(ROBOT_URL, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({
-userId: currentUser.uid,
-game: selectedGame.name,
-itemId: selectedGame.items.find(i => i.name === selectedItemName).prodId,
-itemName: selectedItemName,
-price: selectedPrice,
-playerId: uid,
-zoneId: zone,
-orderId: "ORD-" + Date.now()
-})
-});
+            // 2. SEND DATA TO MAKE.COM
+            const response = await fetch(ROBOT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    type: "ORDER",
+                    userId: currentUser.uid,
+                    email: currentUser.email,
+                    game: selectedGame.name,
+                    item: selectedItemName,
+                    price: selectedPrice,
+                    playerId: uid,
+                    zoneId: zone || "N/A",
+                    orderId: "ORD-" + Date.now()
+                })
+            });
 
-if(response.ok) {
-alert("Success! Your items will arrive in 5 minutes.");
-closeModal('game-modal');
-} else {
-alert("System busy. Please try again."); 
-}
-} catch(e) {
-alert("Error: " + e.message);
-} finally {
-const btn = document.querySelector('#game-modal .btn-primary');
-btn.innerText = "Pay with G Currency";
-btn.disabled = false;
-}
-}
+            if(response.ok) {
+                // 3. ALSO SAVE TO FIREBASE (For your Admin Dashboard Record)
+                await db.collection("requests").add({
+                    userId: currentUser.uid,
+                    email: currentUser.email,
+                    type: "ORDER",
+                    game: selectedGame.name,
+                    item: selectedItemName,
+                    price: selectedPrice,
+                    playerId: uid,
+                    zoneId: zone || "N/A",
+                    status: "ROBOT_PROCESSING",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert("Success! Robot has received your order.");
+                closeModal('game-modal');
+            } else {
+                throw new Error("Robot did not answer.");
+            }
 
+        } catch(e) { 
+            console.error(e);
+            alert("Connection Failed. Trying Manual Mode...");
+            // Fallback logic could go here, but for now just alert
+        } finally {
+            const btn = document.querySelector('#game-modal .btn-primary');
+            btn.innerText = "Pay with G Currency";
+            btn.disabled = false;
+        }
+    }
 // --- UTILS & PROFILE ---
 function openProfileModal() {
 document.getElementById('profile-email-disp').innerText = currentUser.email;
@@ -433,3 +453,4 @@ auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, 
 </body>
 
 </html>
+
