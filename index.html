@@ -361,8 +361,11 @@ async function submitOrder() {
             btn.disabled = true;
 
             // 1. DEDUCT MONEY
+            // Ensure 'selectedPrice' is a Number, not a String "100"
+            const priceToDeduct = parseInt(selectedPrice); 
+
             await db.collection("users").doc(currentUser.uid).update({
-                balance: firebase.firestore.FieldValue.increment(-selectedPrice)
+                balance: firebase.firestore.FieldValue.increment(-priceToDeduct)
             });
 
             // 2. SEND TO ROBOT
@@ -452,6 +455,7 @@ auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, 
 </body>
 
 </html>
+
 
 
 
