@@ -207,7 +207,7 @@ appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
 };
 
 // B. MAKE.COM WEBHOOK URL (For the Robot)
-const ROBOT_URL = "https://hook.us1.make.com/YOUR_WEBHOOK_URL_HERE";
+const ROBOT_URL = "https://hook.us2.make.com/w3svq7h6rxnmex6f9h12c4dqhmnb6kbf";
 
 // --------------------------------------------------
 
@@ -376,10 +376,10 @@ orderId: "ORD-" + Date.now()
 });
 
 if(response.ok) {
-alert("Success! The system is sending your items now.");
+alert("Success! Your items will arrive in 5 minutes.");
 closeModal('game-modal');
 } else {
-alert("System busy. Please try again.");
+alert("System busy. Please try again."); 
 }
 } catch(e) {
 alert("Error: " + e.message);
@@ -431,4 +431,5 @@ auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, 
 </script>
 
 </body>
+
 </html>
