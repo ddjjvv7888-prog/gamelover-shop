@@ -141,11 +141,11 @@ input:focus { border-color: var(--primary); outline: none; }
         <div style="display:flex; justify-content:center; gap:20px; margin-bottom:15px;">
             <div style="text-align:center;">
                 <img src="kpay.png" alt="KPay" style="width:60px; height:60px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="margin:5px 0; font-size:0.8rem; font-weight:bold;">09-123456789</p>
+                <p style="margin:5px 0; font-size:0.8rem; font-weight:bold;">09767139991{Aung Li}</p>
             </div>
             <div style="text-align:center;">
                 <img src="uabpay.png" alt="UAB" style="width:60px; height:60px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="margin:5px 0; font-size:0.8rem; font-weight:bold;">09-987654321</p>
+                <p style="margin:5px 0; font-size:0.8rem; font-weight:bold;">09767139991{Aung Li}</p>
             </div>
         </div>
 
@@ -153,10 +153,10 @@ input:focus { border-color: var(--primary); outline: none; }
         
         <label><b>1. Select Amount</b></label>
         <div class="price-grid">
-            <div class="price-option" onclick="setDeposit(100)">100 G</div>
-            <div class="price-option" onclick="setDeposit(500)">500 G</div>
-            <div class="price-option" onclick="setDeposit(1000)">1000 G</div>
-            <div class="price-option" onclick="setDeposit(5000)">5000 G</div>
+            <div class="price-option" onclick="setDeposit(10000)">10000 G</div>
+            <div class="price-option" onclick="setDeposit(50000)">50000 G</div>
+            <div class="price-option" onclick="setDeposit(100000)">100000 G</div>
+            <div class="price-option" onclick="setDeposit(500000)">500000 G</div>
         </div>
         <input type="number" id="deposit-amount" placeholder="Or enter custom amount">
 
@@ -165,7 +165,7 @@ input:focus { border-color: var(--primary); outline: none; }
         
         <button class="btn-primary" onclick="submitDeposit()">Request Top Up</button>
         <p style="font-size:0.8rem; color:#666; margin-top:15px; text-align:center;">
-            Please transfer to one of the wallets above and enter the last 5 digits.
+             Please transfer to one of the wallets above and enter the last 5 digits.
         </p>
     </div>
 </div>
@@ -243,20 +243,20 @@ const games = [
 // GAMES WITH ZONES (Servers)
 {
 name: "Genshin Impact", image: "gim.jpg", hasZone: true,
-items: [{name: "60 Crystals", price: 100, prodId: "1234"}, {name: "300 Crystals", price: 500, prodId: "5678"}]
+items: [{name: "Welking Moon", price: 17000, prodId: "5678"}, {name: "60 Crystals", price: 3900, prodId: "1234"}, {name: "300+30 Crystals", price: 19000, prodId: "5678"}, {name: "1980+260 Crystals", price: 107800, prodId: "5678"}]
 },
 {
 name: "Honkai: Star Rail", image: "hsr.jpg", hasZone: true,
-items: [{name: "60 Shards", price: 100, prodId: "2233"}, {name: "Express Pass", price: 550, prodId: "4455"}]
+items: [{name: "60 Shards", price: 3800, prodId: "2233"}, {name: "Express Pass", price: 17500, prodId: "4455"}, {name: "300+30 Shards", price: 17000, prodId: "4455"}, {name: "1980+260 Shards", price: 108000, prodId: "4455"}]
 },
 {
 name: "Zenless Zone Zero", image: "zen.jpg", hasZone: true,
-items: [{name: "60 Monochrome", price: 100, prodId: "8899"}, {name: "Inter-Knot", price: 550, prodId: "9900"}]
+items: [{name: "60 Monochrome", price: 5300, prodId: "8899"}, {name: "300+30 Monochrome", price: 19500, prodId: "8899"}, {name: "1980+260 Monochrome", price: 140000, prodId: "8899"}{name: "Inter-Knot", price: 19500, prodId: "9900"}]
 },
 // GAMES WITHOUT ZONES (Just UID)
 {
 name: "AFK Journey", image: "afk-journey.jpg", hasZone: false,
-items: [{name: "Dragon Crystals", price: 200, prodId: "7777"}, {name: "Growth Bundle", price: 1000, prodId: "8888"}]
+items: [{name: "21 Dragon Crystals", price: 4800, prodId: "7777"}, {name: "Growth Bundle", price: 122000, prodId: "8888"}, {name: "294 Dragon Crystals", price: 46000, prodId: "8899"}, {name: "3150 Dragon Crystals", price: 389000, prodId: "8899"}]
 },
 {
 name: "Where Winds Meet", image: "wwm.jpg", hasZone: false,
@@ -492,6 +492,7 @@ auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, 
 </body>
 
 </html>
+
 
 
 
