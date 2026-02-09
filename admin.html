@@ -218,7 +218,7 @@ appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
                 const doc = await t.get(userRef);
                 const oldBal = Number(doc.data()?.balance || 0);
                 const newBal = oldBal + Number(amount);
-                t.set(userRef, { balance: newBal, email: userId }, { merge: true });
+                t.set(userRef, { balance: newBal }, { merge: true });
                 t.update(db.collection("requests").doc(reqId), { status: "COMPLETED" });
             });
             alert("Balance Updated!");
@@ -240,3 +240,4 @@ appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
 
 </body>
 </html>
+
