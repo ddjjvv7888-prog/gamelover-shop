@@ -295,11 +295,7 @@ auth.onAuthStateChanged(user => {
         document.getElementById('auth-buttons').style.display = 'none';
         document.getElementById('wallet-display').style.display = 'flex';
         document.getElementById('profile-btn').style.display = 'flex';
-        
-        // --- THIS WAS MISSING! ---
-        document.getElementById('history-btn').style.display = 'flex'; 
-        // -------------------------
-
+        document.getElementById('history-btn').style.display = 'flex';
         document.getElementById('nav-email').innerText = user.email.split('@')[0];
 
         // 2. LISTEN TO BALANCE & FIX MISSING EMAIL
@@ -326,23 +322,9 @@ auth.onAuthStateChanged(user => {
         // Hide buttons if logged out
         document.getElementById('wallet-display').style.display = 'none';
         document.getElementById('profile-btn').style.display = 'none';
-        document.getElementById('history-btn').style.display = 'none'; // Hide history too
-        document.getElementById('auth-buttons').style.display = 'flex';
-    }
-});
-            }
-        });
-    } else {
-        // Hide buttons if logged out
-        document.getElementById('wallet-display').style.display = 'none';
-        document.getElementById('profile-btn').style.display = 'none';
         document.getElementById('history-btn').style.display = 'none';
         document.getElementById('auth-buttons').style.display = 'flex';
     }
-});
-}
-});
-}
 });
 
 // --- DEPOSIT (TOP UP) LOGIC ---
@@ -608,6 +590,7 @@ document.getElementById('register-form').onsubmit = (e) => {
 </body>
 
 </html>
+
 
 
 
