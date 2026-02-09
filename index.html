@@ -295,7 +295,11 @@ auth.onAuthStateChanged(user => {
         document.getElementById('auth-buttons').style.display = 'none';
         document.getElementById('wallet-display').style.display = 'flex';
         document.getElementById('profile-btn').style.display = 'flex';
-        document.getElementById('history-btn').style.display = 'flex'; // <--- ADDED THIS!
+        
+        // --- THIS WAS MISSING! ---
+        document.getElementById('history-btn').style.display = 'flex'; 
+        // -------------------------
+
         document.getElementById('nav-email').innerText = user.email.split('@')[0];
 
         // 2. LISTEN TO BALANCE & FIX MISSING EMAIL
@@ -316,6 +320,16 @@ auth.onAuthStateChanged(user => {
                     balance: 0, 
                     email: user.email
                 });
+            }
+        });
+    } else {
+        // Hide buttons if logged out
+        document.getElementById('wallet-display').style.display = 'none';
+        document.getElementById('profile-btn').style.display = 'none';
+        document.getElementById('history-btn').style.display = 'none'; // Hide history too
+        document.getElementById('auth-buttons').style.display = 'flex';
+    }
+});
             }
         });
     } else {
@@ -588,16 +602,13 @@ document.getElementById('register-form').onsubmit = (e) => {
               });
           });
     }
-
-    // Make sure to show the button when logged in!
-    // (Find your auth.onAuthStateChanged function and add this line inside the "if(user)" block):
-    // document.getElementById('history-btn').style.display = 'flex';
     
 </script>
 
 </body>
 
 </html>
+
 
 
 
