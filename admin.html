@@ -209,20 +209,42 @@ appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
         });
     }
 
-    // --- ACTIONS ---
-    async function approveDeposit(reqId, userId, amount) {
+async function approveDeposit(reqId, userId, amount) {
+        // 1. Ask for confirmation first
         if(!confirm(`Confirm Ref matches Bank? Add ${amount} G?`)) return;
+        
         try {
             const userRef = db.collection("users").doc(userId);
+            const reqRef = db.collection("requests").doc(reqId);
+            
             await db.runTransaction(async (t) => {
-                const doc = await t.get(userRef);
-                const oldBal = Number(doc.data()?.balance || 0);
+                // 2. READ both documents first
+                const reqDoc = await t.get(reqRef);
+                const userDoc = await t.get(userRef);
+                
+                // 3. THE SAFETY CHECK (Stops the double-tap)
+                if(!reqDoc.exists) throw "Request not found!";
+                if(reqDoc.data().status === "COMPLETED") {
+                    throw "STOP! This order was already processed.";
+                }
+
+                // 4. Calculate new balance
+                const oldBal = Number(userDoc.data()?.balance || 0);
                 const newBal = oldBal + Number(amount);
+                
+                // 5. Update both (Balance & Status)
+                // Note: using set with merge to ensure we don't overwrite other user data
                 t.set(userRef, { balance: newBal }, { merge: true });
-                t.update(db.collection("requests").doc(reqId), { status: "COMPLETED" });
+                t.update(reqRef, { status: "COMPLETED" });
             });
-            alert("Balance Updated!");
-        } catch(e) { alert("Error: " + e.message); }
+            
+            alert("Success! Balance Updated.");
+            
+        } catch(e) { 
+            // If it was a double-tap, this error will pop up
+            console.error(e);
+            alert("Notice: " + (e.message || e)); 
+        }
     }
 
     function completeOrder(reqId) {
@@ -240,4 +262,5 @@ appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
 
 </body>
 </html>
+
 
