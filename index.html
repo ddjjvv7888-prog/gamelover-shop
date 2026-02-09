@@ -98,8 +98,12 @@ input:focus { border-color: var(--primary); outline: none; }
 <button class="add-btn" onclick="openDepositModal()" title="Top Up G">+</button>
 </div>
 
+<button id="history-btn" class="icon-btn" onclick="openHistoryModal()" style="display:none;">
+    📜 History
+</button>
+
 <button id="profile-btn" class="icon-btn" onclick="openProfileModal()" style="display:none;">
-👤 <span id="nav-email">Profile</span>
+    👤 Profile
 </button>
 
 <div id="auth-buttons">
@@ -132,7 +136,17 @@ input:focus { border-color: var(--primary); outline: none; }
 </form>
 </div>
 </div>
-
+    
+<div class="modal" id="history-modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="closeModal('history-modal')">&times;</span>
+        <h2 style="color:var(--primary); margin-top:0;">📜 My Orders</h2>
+        
+        <div id="history-list" style="max-height: 300px; overflow-y: auto;">
+            <p>Loading...</p>
+        </div>
+    </div>
+</div>
 <div class="modal" id="deposit-modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('deposit-modal')">&times;</span>
@@ -487,11 +501,68 @@ e.preventDefault();
 auth.createUserWithEmailAndPassword(document.getElementById('reg-email').value, document.getElementById('reg-pass').value)
 .then(() => closeModal('auth-modal')).catch(e => alert(e.message));
 }
+// --- HISTORY FUNCTION ---
+    function openHistoryModal() {
+        if(!currentUser) return;
+        document.getElementById('history-modal').style.display = 'flex';
+        const list = document.getElementById('history-list');
+        list.innerHTML = "Loading...";
+
+        // Query: Get my orders + deposits, ordered by time
+        db.collection("requests")
+          .where("userId", "==", currentUser.uid)
+          .orderBy("timestamp", "desc")
+          .limit(20) // Show last 20 items
+          .get()
+          .then(snap => {
+              list.innerHTML = "";
+              if(snap.empty) {
+                  list.innerHTML = "<p style='text-align:center; color:#888;'>No records found.</p>";
+                  return;
+              }
+
+              snap.forEach(doc => {
+                  const d = doc.data();
+                  const time = d.timestamp ? d.timestamp.toDate().toLocaleDateString() : "Just now";
+                  
+                  // Color code the status
+                  let statusColor = "#888"; // Default Grey (Pending)
+                  if(d.status === "COMPLETED") statusColor = "var(--green)";
+                  if(d.status === "PROCESSING") statusColor = "orange";
+                  
+                  // Icon based on type
+                  const icon = d.type === "DEPOSIT" ? "💰" : "🎮";
+                  const title = d.type === "DEPOSIT" ? `Top Up: ${d.amount} G` : `${d.game} (${d.item})`;
+
+                  const item = document.createElement('div');
+                  item.style.borderBottom = "1px solid #eee";
+                  item.style.padding = "10px 0";
+                  item.innerHTML = `
+                      <div style="display:flex; justify-content:space-between; align-items:center;">
+                          <div>
+                              <div style="font-weight:bold; font-size:0.95rem;">${icon} ${title}</div>
+                              <div style="font-size:0.8rem; color:#666;">${time} • <span style="color:${statusColor}; font-weight:bold;">${d.status}</span></div>
+                          </div>
+                          <div style="font-weight:bold;">
+                              ${d.type === "DEPOSIT" ? "+" : "-"}${d.price || d.amount || 0}
+                          </div>
+                      </div>
+                  `;
+                  list.appendChild(item);
+              });
+          });
+    }
+
+    // Make sure to show the button when logged in!
+    // (Find your auth.onAuthStateChanged function and add this line inside the "if(user)" block):
+    // document.getElementById('history-btn').style.display = 'flex';
+    
 </script>
 
 </body>
 
 </html>
+
 
 
 
