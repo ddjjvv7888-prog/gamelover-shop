@@ -225,20 +225,18 @@ input:focus { border-color: var(--primary); outline: none; }
 </div>
 
 <script>
-// --- FIREBASE CONFIGURATION (PASTE YOUR KEYS HERE) ---
+// --- FIREBASE CONFIGURATION ---
 const firebaseConfig = {
-apiKey: "AIzaSyBZoKyWmeNSELvqVm8barRKp3alPy-GdGk",
-authDomain: "gamelovershop-d3b47.firebaseapp.com",
-projectId: "gamelovershop-d3b47",
-storageBucket: "gamelovershop-d3b47.firebasestorage.app",
-messagingSenderId: "782424722391",
-appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
+    apiKey: "AIzaSyBZoKyWmeNSELvqVm8barRKp3alPy-GdGk",
+    authDomain: "gamelovershop-d3b47.firebaseapp.com",
+    projectId: "gamelovershop-d3b47",
+    storageBucket: "gamelovershop-d3b47.firebasestorage.app",
+    messagingSenderId: "782424722391",
+    appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
 };
 
-// B. MAKE.COM WEBHOOK URL (For the Robot)
+// ROBOT URL
 const ROBOT_URL = "https://hook.us2.make.com/w3svq7h6rxnmex6f9h12c4dqhmnb6kbf";
-
-// --------------------------------------------------
 
 // Init Firebase
 firebase.initializeApp(firebaseConfig);
@@ -252,41 +250,25 @@ let selectedGame = null;
 let selectedPrice = 0;
 let selectedItemName = "";
 
-// --- GAME DATA LIST (Updated for Zone/No Zone) ---
+// --- GAME DATA LIST ---
 const games = [
-// GAMES WITH ZONES (Servers)
-{
-name: "Genshin Impact", image: "gim.jpg", hasZone: true,
-items: [{name: "Welking Moon", price: 17000, prodId: "5678"}, {name: "60 Crystals", price: 4100, prodId: "1234"}, {name: "300+30 Crystals", price: 19000, prodId: "5777"}, {name: "1980+260 Crystals", price: 107800, prodId: "5709"}]
-},
-{
-name: "Honkai: Star Rail", image: "hsr.jpg", hasZone: true,
-items: [{name: "60 Shards", price: 3800, prodId: "2233"}, {name: "Express Pass", price: 17500, prodId: "4455"}, {name: "300+30 Shards", price: 17000, prodId: "4450"}, {name: "1980+260 Shards", price: 108000, prodId: "4459"}]
-},
-{
-name: "Zenless Zone Zero", image: "zen.jpg", hasZone: true,
-items: [{name: "60 Monochrome", price: 4000, prodId: "8859"}, {name: "300+30 Monochrome", price: 19500, prodId: "8989"}, {name: "1980+260 Monochrome", price: 100000, prodId: "8899"}, {name: "Inter-Knot", price: 17500, prodId: "9900"}]
-},
-// GAMES WITHOUT ZONES (Just UID)
-{
-name: "AFK Journey", image: "afk-journey.jpg", hasZone: false,
-items: [{name: "21 Dragon Crystals", price: 4800, prodId: "7777"}, {name: "Growth Bundle", price: 122000, prodId: "8888"}, {name: "294 Dragon Crystals", price: 44000, prodId: "8901"}, {name: "3150 Dragon Crystals", price: 399000, prodId: "8879"}]
-},
-{
-name: "Where Winds Meet", image: "wwm.jpg", hasZone: false,
-items: [{name: "Monthly Pass", price: 23000, prodId: "1111"}, {name: "600 Beads", price: 44000, prodId: "2335"}, {name: "1800 Beads", price: 126000, prodId: "2435"}, {name: "Elite Battle Pass", price: 46000, prodId: "2222"}, {name: "Premium Battle Pass", price: 78500, prodId: "3333"}, {name: "60 Echo Beads", price: 4500, prodId: "4444"}, {name: "300 Echo Beads", price: 26000, prodId: "5555"}, {name: "1800 Echo Beads", price: 128000, prodId: "6666"}]
-}
+    { name: "Genshin Impact", image: "gim.jpg", hasZone: true, items: [{name: "Welking Moon", price: 17000}, {name: "60 Crystals", price: 4100}, {name: "300+30 Crystals", price: 19000}, {name: "1980+260 Crystals", price: 107800}] },
+    { name: "Honkai: Star Rail", image: "hsr.jpg", hasZone: true, items: [{name: "60 Shards", price: 3800}, {name: "Express Pass", price: 17500}, {name: "300+30 Shards", price: 17000}, {name: "1980+260 Shards", price: 108000}] },
+    { name: "Zenless Zone Zero", image: "zen.jpg", hasZone: true, items: [{name: "60 Monochrome", price: 4000}, {name: "300+30 Monochrome", price: 19500}, {name: "1980+260 Monochrome", price: 100000}, {name: "Inter-Knot", price: 17500}] },
+    { name: "AFK Journey", image: "afk-journey.jpg", hasZone: false, items: [{name: "21 Dragon Crystals", price: 4800}, {name: "Growth Bundle", price: 122000}, {name: "294 Dragon Crystals", price: 44000}, {name: "3150 Dragon Crystals", price: 399000}] },
+    { name: "Where Winds Meet", image: "wwm.jpg", hasZone: false, items: [{name: "Monthly Pass", price: 23000}, {name: "600 Beads", price: 44000}, {name: "1800 Beads", price: 126000}, {name: "Elite Battle Pass", price: 46000}, {name: "Premium Battle Pass", price: 78500}, {name: "60 Echo Beads", price: 4500}, {name: "300 Echo Beads", price: 26000}, {name: "1800 Echo Beads", price: 128000}] }
 ];
 
 // --- RENDERING ---
 const grid = document.getElementById('game-grid');
 games.forEach((game, idx) => {
-const card = document.createElement('div');
-card.className = 'card';
-card.innerHTML = `<img src="${game.image}" alt="${game.name}"><div class="card-body"><span class="card-title">${game.name}</span></div>`;
-card.onclick = () => openGameModal(idx);
-grid.appendChild(card);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<img src="${game.image}" alt="${game.name}"><div class="card-body"><span class="card-title">${game.name}</span></div>`;
+    card.onclick = () => openGameModal(idx);
+    grid.appendChild(card);
 });
+
 // --- AUTH LOGIC ---
 auth.onAuthStateChanged(user => {
     currentUser = user;
@@ -331,265 +313,258 @@ auth.onAuthStateChanged(user => {
 function setDeposit(amount) { document.getElementById('deposit-amount').value = amount; }
 
 async function submitDeposit() {
-        if(!currentUser) return alert("Please Login First");
+    if(!currentUser) return alert("Please Login First");
+    
+    const amount = parseInt(document.getElementById('deposit-amount').value);
+    const ref = document.getElementById('deposit-ref').value;
+    
+    if(!amount || amount <= 0) return alert("Invalid Amount");
+    if(!ref || ref.length < 5) return alert("Please enter the Last 5 Digits of the Transaction ID");
+
+    try {
+        const btn = document.querySelector('#deposit-modal .btn-primary');
+        btn.innerText = "Sending...";
+        btn.disabled = true;
+
+        // Save to Firebase
+        await db.collection("requests").add({
+            userId: currentUser.uid,
+            email: currentUser.email,
+            type: "DEPOSIT",
+            amount: amount,
+            refNo: ref, 
+            status: "PENDING",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Request Sent! \n\nAmount: ${amount} G\nRef: ${ref}\n\nPlease wait for Admin approval.`);
+        closeModal('deposit-modal');
         
-        const amount = parseInt(document.getElementById('deposit-amount').value);
-        const ref = document.getElementById('deposit-ref').value;
-        
-        // Validation
-        if(!amount || amount <= 0) return alert("Invalid Amount");
-        if(!ref || ref.length < 5) return alert("Please enter the Last 5 Digits of the Transaction ID");
+        // Clear inputs
+        document.getElementById('deposit-amount').value = "";
+        document.getElementById('deposit-ref').value = "";
 
-        try {
-            const btn = document.querySelector('#deposit-modal .btn-primary');
-            btn.innerText = "Sending...";
-            btn.disabled = true;
-
-            // Save to Firebase
-            await db.collection("requests").add({
-                userId: currentUser.uid,
-                email: currentUser.email,
-                type: "DEPOSIT",
-                amount: amount,
-                refNo: ref,         // <--- Saving the Last 5 Digits here
-                status: "PENDING",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            alert(`Request Sent! \n\nAmount: ${amount} G\nRef: ${ref}\n\nPlease wait for Admin approval.`);
-            closeModal('deposit-modal');
-            
-            // Clear inputs for next time
-            document.getElementById('deposit-amount').value = "";
-            document.getElementById('deposit-ref').value = "";
-
-        } catch(e) { 
-            alert("Error: " + e.message); 
-        } finally {
-            const btn = document.querySelector('#deposit-modal .btn-primary');
-            btn.innerText = "Request Top Up";
-            btn.disabled = false;
-        }
+    } catch(e) { 
+        alert("Error: " + e.message); 
+    } finally {
+        const btn = document.querySelector('#deposit-modal .btn-primary');
+        btn.innerText = "Request Top Up";
+        btn.disabled = false;
     }
+}
 
 // --- GAME ORDER LOGIC ---
 function openGameModal(idx) {
-selectedGame = games[idx];
-document.getElementById('modal-game-name').innerText = selectedGame.name;
+    selectedGame = games[idx];
+    document.getElementById('modal-game-name').innerText = selectedGame.name;
 
-// Show/Hide Server Box based on game
-const srvSection = document.getElementById('server-section');
-const srvInput = document.getElementById('server-id');
-if(selectedGame.hasZone) {
-srvSection.style.display = 'block';
-srvInput.value = "";
-} else {
-srvSection.style.display = 'none';
-srvInput.value = "";
+    // Show/Hide Server Box based on game
+    const srvSection = document.getElementById('server-section');
+    const srvInput = document.getElementById('server-id');
+    if(selectedGame.hasZone) {
+        srvSection.style.display = 'block';
+        srvInput.value = "";
+    } else {
+        srvSection.style.display = 'none';
+        srvInput.value = "";
+    }
+
+    // Render Prices
+    const container = document.getElementById('item-options');
+    container.innerHTML = '';
+    selectedPrice = 0;
+    selectedItemName = "";
+
+    selectedGame.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'price-option';
+        div.innerHTML = `<b>${item.name}</b><br>${item.price} G`;
+        div.onclick = function() {
+            document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
+            div.classList.add('selected');
+            selectedPrice = item.price;
+            selectedItemName = item.name;
+        };
+        container.appendChild(div);
+    });
+    document.getElementById('game-modal').style.display = 'flex';
 }
 
-// Render Prices
-const container = document.getElementById('item-options');
-container.innerHTML = '';
-selectedPrice = 0;
-selectedItemName = "";
-
-selectedGame.items.forEach(item => {
-const div = document.createElement('div');
-div.className = 'price-option';
-div.innerHTML = `<b>${item.name}</b><br>${item.price} G`;
-div.onclick = function() {
-document.querySelectorAll('.price-option').forEach(el => el.classList.remove('selected'));
-div.classList.add('selected');
-selectedPrice = item.price;
-selectedItemName = item.name;
-};
-container.appendChild(div);
-});
-document.getElementById('game-modal').style.display = 'flex';
-}
 async function submitOrder() {
-        if(!currentUser) return alert("Please Login First");
-        if(selectedPrice === 0) return alert("Please select an item");
-        
-        const uid = document.getElementById('player-id').value;
-        const zone = document.getElementById('server-id').value;
+    if(!currentUser) return alert("Please Login First");
+    if(selectedPrice === 0) return alert("Please select an item");
+    
+    const uid = document.getElementById('player-id').value;
+    const zone = document.getElementById('server-id').value;
 
-        if(!uid) return alert("Please enter Player ID");
-        if(selectedGame.hasZone && !zone) return alert("This game requires a Server ID!");
-        if(currentBalance < selectedPrice) return alert("Insufficient G Balance!");
+    if(!uid) return alert("Please enter Player ID");
+    if(selectedGame.hasZone && !zone) return alert("This game requires a Server ID!");
+    if(currentBalance < selectedPrice) return alert("Insufficient G Balance!");
 
-        // REMOVED THE POPUP LINE HERE
+    try {
+        const btn = document.querySelector('#game-modal .btn-primary');
+        btn.innerText = "Paying...";
+        btn.disabled = true;
 
-        const ROBOT_URL = "https://hook.us2.make.com/w3svq7h6rxnmex6f9h12c4dqhmnb6kbf"; 
+        // 1. DEDUCT MONEY
+        const priceToDeduct = parseInt(selectedPrice); 
+        await db.collection("users").doc(currentUser.uid).update({
+            balance: firebase.firestore.FieldValue.increment(-priceToDeduct)
+        });
 
-        try {
-            const btn = document.querySelector('#game-modal .btn-primary');
-            const originalText = btn.innerText; // Save old text
-            btn.innerText = "Paying...";       // Show status on button
-            btn.disabled = true;
-
-            // 1. DEDUCT MONEY
-            // Ensure 'selectedPrice' is a Number, not a String "100"
-            const priceToDeduct = parseInt(selectedPrice); 
-
-            await db.collection("users").doc(currentUser.uid).update({
-                balance: firebase.firestore.FieldValue.increment(-priceToDeduct)
-            });
-
-            // 2. SEND TO ROBOT
-            fetch(ROBOT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    type: "ORDER",
-                    userId: currentUser.uid,
-                    email: currentUser.email,
-                    game: selectedGame.name,
-                    item: selectedItemName,
-                    price: selectedPrice,
-                    playerId: uid,
-                    zoneId: zone || "N/A",
-                    orderId: "ORD-" + Date.now()
-                })
-            }).catch(e => console.log("Robot signal sent"));
-
-            // 3. SAVE RECORD
-            await db.collection("requests").add({
+        // 2. SEND TO ROBOT
+        fetch(ROBOT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "ORDER",
                 userId: currentUser.uid,
                 email: currentUser.email,
-                type: "ORDER",
                 game: selectedGame.name,
                 item: selectedItemName,
                 price: selectedPrice,
                 playerId: uid,
                 zoneId: zone || "N/A",
-                status: "PROCESSING",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+                orderId: "ORD-" + Date.now()
+            })
+        }).catch(e => console.log("Robot signal sent"));
 
-            // Success message (No choice popup)
-            alert(`Payment Successful! \n\n${selectedPrice} G deducted.\nYour items will arrive shortly.`);
-            closeModal('game-modal');
+        // 3. SAVE RECORD
+        await db.collection("requests").add({
+            userId: currentUser.uid,
+            email: currentUser.email,
+            type: "ORDER",
+            game: selectedGame.name,
+            item: selectedItemName,
+            price: selectedPrice,
+            playerId: uid,
+            zoneId: zone || "N/A",
+            status: "PROCESSING",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-        } catch(e) { 
-            console.error(e);
-            alert("Error: " + e.message);
-        } finally {
-            const btn = document.querySelector('#game-modal .btn-primary');
-            btn.innerText = "Pay with G Currency"; // Reset button
-            btn.disabled = false;
-        }
+        alert(`Payment Successful! \n\n${selectedPrice} G deducted.\nYour items will arrive shortly.`);
+        closeModal('game-modal');
+
+    } catch(e) { 
+        console.error(e);
+        alert("Error: " + e.message);
+    } finally {
+        const btn = document.querySelector('#game-modal .btn-primary');
+        btn.innerText = "Pay with G Currency";
+        btn.disabled = false;
     }
+}
+
 // --- UTILS & PROFILE ---
 function openProfileModal() {
-document.getElementById('profile-email-disp').innerText = currentUser.email;
-document.getElementById('profile-uid').innerText = currentUser.uid;
-document.getElementById('profile-bal').innerText = currentBalance + " G";
-document.getElementById('profile-modal').style.display = 'flex';
+    document.getElementById('profile-email-disp').innerText = currentUser.email;
+    document.getElementById('profile-uid').innerText = currentUser.uid;
+    document.getElementById('profile-bal').innerText = currentBalance + " G";
+    document.getElementById('profile-modal').style.display = 'flex';
 }
 
 function openAuthModal() { document.getElementById('auth-modal').style.display = 'flex'; }
 function openDepositModal() {
-document.getElementById('deposit-bal').innerText = currentBalance + " G";
-document.getElementById('deposit-modal').style.display = 'flex';
+    document.getElementById('deposit-bal').innerText = currentBalance + " G";
+    document.getElementById('deposit-modal').style.display = 'flex';
 }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function switchTab(t) {
-document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-if(t=='login') {
-document.getElementById('login-form').style.display='block';
-document.getElementById('register-form').style.display='none';
-document.querySelector('.tab:first-child').classList.add('active');
-} else {
-document.getElementById('login-form').style.display='none';
-document.getElementById('register-form').style.display='block';
-document.querySelector('.tab:last-child').classList.add('active');
-}
-}
-
-document.getElementById('login-form').onsubmit = (e) => {
-e.preventDefault();
-auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-pass').value)
-.then(() => closeModal('auth-modal')).catch(e => alert(e.message));
-}
-document.getElementById('register-form').onsubmit = (e) => {
-        e.preventDefault();
-        const email = document.getElementById('reg-email').value;
-        const pass = document.getElementById('reg-pass').value;
-
-        auth.createUserWithEmailAndPassword(email, pass)
-            .then((cred) => {
-                // FORCE SAVE EMAIL TO DATABASE
-                return db.collection("users").doc(cred.user.uid).set({
-                    email: email,
-                    balance: 0
-                });
-            })
-            .then(() => {
-                closeModal('auth-modal');
-                alert("Account Created! You are now logged in.");
-            })
-            .catch(e => alert(e.message));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    if(t=='login') {
+        document.getElementById('login-form').style.display='block';
+        document.getElementById('register-form').style.display='none';
+        document.querySelector('.tab:first-child').classList.add('active');
+    } else {
+        document.getElementById('login-form').style.display='none';
+        document.getElementById('register-form').style.display='block';
+        document.querySelector('.tab:last-child').classList.add('active');
     }
+}
+
 // --- HISTORY FUNCTION ---
-    function openHistoryModal() {
-        if(!currentUser) return;
-        document.getElementById('history-modal').style.display = 'flex';
-        const list = document.getElementById('history-list');
-        list.innerHTML = "Loading...";
+function openHistoryModal() {
+    if(!currentUser) return;
+    document.getElementById('history-modal').style.display = 'flex';
+    const list = document.getElementById('history-list');
+    list.innerHTML = "Loading...";
 
-        // Query: Get my orders + deposits, ordered by time
-        db.collection("requests")
-          .where("userId", "==", currentUser.uid)
-          .orderBy("timestamp", "desc")
-          .limit(20) // Show last 20 items
-          .get()
-          .then(snap => {
-              list.innerHTML = "";
-              if(snap.empty) {
-                  list.innerHTML = "<p style='text-align:center; color:#888;'>No records found.</p>";
-                  return;
-              }
+    // Query: Get my orders + deposits, ordered by time
+    db.collection("requests")
+        .where("userId", "==", currentUser.uid)
+        .orderBy("timestamp", "desc")
+        .limit(20) 
+        .get()
+        .then(snap => {
+            list.innerHTML = "";
+            if(snap.empty) {
+                list.innerHTML = "<p style='text-align:center; color:#888;'>No records found.</p>";
+                return;
+            }
 
-              snap.forEach(doc => {
-                  const d = doc.data();
-                  const time = d.timestamp ? d.timestamp.toDate().toLocaleDateString() : "Just now";
-                  
-                  // Color code the status
-                  let statusColor = "#888"; // Default Grey (Pending)
-                  if(d.status === "COMPLETED") statusColor = "var(--green)";
-                  if(d.status === "PROCESSING") statusColor = "orange";
-                  
-                  // Icon based on type
-                  const icon = d.type === "DEPOSIT" ? "💰" : "🎮";
-                  const title = d.type === "DEPOSIT" ? `Top Up: ${d.amount} G` : `${d.game} (${d.item})`;
+            snap.forEach(doc => {
+                const d = doc.data();
+                const time = d.timestamp ? d.timestamp.toDate().toLocaleDateString() : "Just now";
+                
+                let statusColor = "#888"; 
+                if(d.status === "COMPLETED") statusColor = "var(--green)";
+                if(d.status === "PROCESSING") statusColor = "orange";
+                
+                const icon = d.type === "DEPOSIT" ? "💰" : "🎮";
+                const title = d.type === "DEPOSIT" ? `Top Up: ${d.amount} G` : `${d.game} (${d.item})`;
 
-                  const item = document.createElement('div');
-                  item.style.borderBottom = "1px solid #eee";
-                  item.style.padding = "10px 0";
-                  item.innerHTML = `
-                      <div style="display:flex; justify-content:space-between; align-items:center;">
-                          <div>
-                              <div style="font-weight:bold; font-size:0.95rem;">${icon} ${title}</div>
-                              <div style="font-size:0.8rem; color:#666;">${time} • <span style="color:${statusColor}; font-weight:bold;">${d.status}</span></div>
-                          </div>
-                          <div style="font-weight:bold;">
-                              ${d.type === "DEPOSIT" ? "+" : "-"}${d.price || d.amount || 0}
-                          </div>
-                      </div>
-                  `;
-                  list.appendChild(item);
-              });
-          });
-    }
-    
+                const item = document.createElement('div');
+                item.style.borderBottom = "1px solid #eee";
+                item.style.padding = "10px 0";
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:bold; font-size:0.95rem;">${icon} ${title}</div>
+                            <div style="font-size:0.8rem; color:#666;">${time} • <span style="color:${statusColor}; font-weight:bold;">${d.status}</span></div>
+                        </div>
+                        <div style="font-weight:bold;">
+                            ${d.type === "DEPOSIT" ? "+" : "-"}${d.price || d.amount || 0}
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        });
+}
+
+// --- FORM LISTENERS ---
+document.getElementById('login-form').onsubmit = (e) => {
+    e.preventDefault();
+    auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-pass').value)
+    .then(() => closeModal('auth-modal')).catch(e => alert(e.message));
+}
+
+document.getElementById('register-form').onsubmit = (e) => {
+    e.preventDefault();
+    const email = document.getElementById('reg-email').value;
+    const pass = document.getElementById('reg-pass').value;
+
+    auth.createUserWithEmailAndPassword(email, pass)
+        .then((cred) => {
+            return db.collection("users").doc(cred.user.uid).set({
+                email: email,
+                balance: 0
+            });
+        })
+        .then(() => {
+            closeModal('auth-modal');
+            alert("Account Created! You are now logged in.");
+        })
+        .catch(e => alert(e.message));
+}
 </script>
 
 </body>
 
 </html>
+
 
 
 
