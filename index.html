@@ -136,7 +136,7 @@ input:focus { border-color: var(--primary); outline: none; }
 </form>
 </div>
 </div>
-    
+   
 <div class="modal" id="history-modal">
     <div class="modal-content" style="max-width: 500px;">
         <span class="close" onclick="closeModal('history-modal')">&times;</span>
@@ -289,7 +289,7 @@ auth.onAuthStateChanged(user => {
                 
                 // --- DEBUG ALERT: TELL ME WHAT YOU SEE ---
                 // This will show exactly what is inside the database file
-                alert("DEBUG DATA:\n" + JSON.stringify(data)); 
+                alert("DEBUG DATA:\n" + JSON.stringify(data, null, 2)); 
                 // -----------------------------------------
 
                 currentBalance = data.balance || 0;
@@ -300,13 +300,17 @@ auth.onAuthStateChanged(user => {
                     db.collection("users").doc(user.uid).update({ email: user.email });
                 }
             } else {
-                alert("DEBUG: Document does not exist yet!");
+                alert("DEBUG: Document does not exist yet! Creating...");
                 // Create doc if it doesn't exist
                 db.collection("users").doc(user.uid).set({
                     balance: 0, 
                     email: user.email
                 });
-            
+            }
+        }, (error) => {
+            // Error Handler for Permissions
+            alert("DATABASE ERROR:\n" + error.message);
+        });
 
     } else {
         // Hide buttons if logged out
@@ -570,22 +574,4 @@ document.getElementById('register-form').onsubmit = (e) => {
 </script>
 
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
