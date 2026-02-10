@@ -280,36 +280,40 @@ auth.onAuthStateChanged(user => {
         document.getElementById('history-btn').style.display = 'flex';
         document.getElementById('nav-email').innerText = user.email.split('@')[0];
 
-        // 2. LISTEN TO BALANCE (DEBUG VERSION)
+       // 2. LISTEN TO BALANCE (SCREEN WRITER VERSION)
+        // This will print the result directly on your screen instead of an alert
+        document.getElementById('balance-text').innerText = "Connecting...";
+        document.getElementById('balance-text').style.fontSize = "0.7rem"; // Make text smaller to fit errors
+
         db.collection("users").doc(user.uid).onSnapshot((doc) => {
-            console.log("Snapshot received!");
-            
             if (doc.exists) {
                 const data = doc.data();
                 
-                // --- DEBUG ALERT: TELL ME WHAT YOU SEE ---
-                // This will show exactly what is inside the database file
-                alert("DEBUG DATA:\n" + JSON.stringify(data, null, 2)); 
-                // -----------------------------------------
-
-                currentBalance = data.balance || 0;
-                document.getElementById('balance-text').innerText = currentBalance + " G";
+                // --- SUCCESS: PRINT THE RAW BALANCE ---
+                // If this works, you will see "FOUND: 513000"
+                document.getElementById('balance-text').style.color = "lime";
+                document.getElementById('balance-text').innerText = "FOUND: " + JSON.stringify(data.balance);
                 
-                // Fix missing email
+                // Self-Healing Email
                 if(!data.email) {
                     db.collection("users").doc(user.uid).update({ email: user.email });
                 }
             } else {
-                alert("DEBUG: Document does not exist yet! Creating...");
-                // Create doc if it doesn't exist
+                // --- MISSING FILE ---
+                document.getElementById('balance-text').style.color = "orange";
+                document.getElementById('balance-text').innerText = "NO FILE FOUND";
+                
+                // Create it
                 db.collection("users").doc(user.uid).set({
                     balance: 0, 
                     email: user.email
                 });
             }
         }, (error) => {
-            // Error Handler for Permissions
-            alert("DATABASE ERROR:\n" + error.message);
+            // --- ERROR: PRINT THE PERMISSION ERROR ---
+            console.error(error);
+            document.getElementById('balance-text').style.color = "red";
+            document.getElementById('balance-text').innerText = "ERR: " + error.code;
         });
 
     } else {
@@ -575,4 +579,5 @@ document.getElementById('register-form').onsubmit = (e) => {
 
 </body>
 </html>
+
 
