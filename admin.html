@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GameLover ADMIN V2</title>
+    <title>GameLover ADMIN V3.1</title>
     <style>
         :root { --primary: #4b0082; --accent: #ffd700; --bg: #f3e5f5; --text: #333; --green: #00d26a; --red: #ff4444; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
         h1 { color: var(--primary); text-align: center; border-bottom: 4px solid var(--accent); padding-bottom: 10px; }
         
         /* LOGIN BOX */
@@ -18,25 +18,20 @@
         button:hover { opacity: 0.9; }
 
         /* DASHBOARD GRID */
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; display: none; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; display: none; }
         
         .panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 500px; overflow-y: auto; }
-        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size:1.2rem; }
 
-        /* LIST ITEMS */
-        .item { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .item:last-child { border-bottom: none; }
-        .info { font-size: 0.9rem; }
+        .item { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .info { font-size: 0.85rem; margin-bottom: 5px; }
         .info b { color: var(--primary); }
-        .price { font-weight: bold; font-size: 1.1rem; color: var(--green); }
-        .time { font-size: 0.75rem; color: #888; margin-top: 5px; }
-
-        /* ACTIONS */
-        .actions { display: flex; gap: 5px; }
-        .btn-approve { background: var(--green); padding: 5px 10px; font-size: 0.8rem; }
-        .btn-deny { background: var(--red); padding: 5px 10px; font-size: 0.8rem; }
+        .price { font-weight: bold; font-size: 1rem; color: var(--green); float: right; }
         
-        /* USER SEARCH */
+        .actions { display: flex; gap: 5px; margin-top: 10px; }
+        .btn-approve { background: var(--green); padding: 5px 10px; font-size: 0.8rem; flex: 1; border:none; color:white; border-radius:5px; cursor:pointer; }
+        .btn-deny { background: var(--red); padding: 5px 10px; font-size: 0.8rem; flex: 1; border:none; color:white; border-radius:5px; cursor:pointer; }
+        
         .user-manager { grid-column: 1 / -1; height: auto; }
         .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
     </style>
@@ -44,7 +39,7 @@
 <body>
 
     <div class="container">
-        <h1>👾 Admin Dashboard V2</h1>
+        <h1>👾 Admin Dashboard V3.1</h1>
 
         <div id="login-box">
             <h3>Admin Login</h3>
@@ -66,10 +61,15 @@
                 <div id="order-list">Loading...</div>
             </div>
 
+            <div class="panel">
+                <h2>💸 P2P Transfers</h2>
+                <div id="transfer-list">Loading...</div>
+            </div>
+
             <div class="panel user-manager">
                 <h2>👤 User Manager</h2>
                 <div class="search-bar">
-                    <input type="text" id="search-uid" placeholder="Enter User UID or Email to edit balance...">
+                    <input type="text" id="search-uid" placeholder="Enter User UID or Email...">
                     <button style="width:auto;" onclick="searchUser()">Search</button>
                 </div>
                 <div id="user-result" style="padding:10px; background:#f9f9f9; border-radius:10px; display:none;">
@@ -91,7 +91,6 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
     import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, increment, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyBZoKyWmeNSELvqVm8barRKp3alPy-GdGk",
         authDomain: "gamelovershop-d3b47.firebaseapp.com",
@@ -104,17 +103,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const ADMIN_UID = "YY1ZvwkU3ePdOxRZtGT2GqBZ3bi2"; // YOUR ID
+    const ADMIN_UID = "YY1ZvwkU3ePdOxRZtGT2GqBZ3bi2"; 
 
-    // --- LOGIN LOGIC ---
     window.doLogin = async () => {
-        const e = document.getElementById('admin-email').value;
-        const p = document.getElementById('admin-pass').value;
-        try {
-            await signInWithEmailAndPassword(auth, e, p);
-        } catch(err) {
-            document.getElementById('status').innerText = "Login Failed: " + err.message;
-        }
+        try { await signInWithEmailAndPassword(auth, document.getElementById('admin-email').value, document.getElementById('admin-pass').value); } 
+        catch(err) { document.getElementById('status').innerText = "Login Failed: " + err.message; }
     };
 
     onAuthStateChanged(auth, (user) => {
@@ -123,153 +116,173 @@
             document.getElementById('dashboard').style.display = 'grid';
             startListeners();
         } else if (user) {
-            document.getElementById('status').innerText = "ACCESS DENIED: You are not the Admin.";
+            document.getElementById('status').innerText = "ACCESS DENIED.";
             auth.signOut();
         }
     });
 
-    // --- REAL-TIME LISTENERS ---
     function startListeners() {
         
-        // 1. WATCH DEPOSITS
+        // 1. DEPOSITS
         const qDep = query(collection(db, "requests"), where("type", "==", "DEPOSIT"), where("status", "==", "PENDING"), orderBy("timestamp", "desc"));
         onSnapshot(qDep, (snap) => {
             const list = document.getElementById('deposit-list');
             list.innerHTML = "";
-            if(snap.empty) list.innerHTML = "<p style='text-align:center; color:#ccc'>No pending deposits.</p>";
-            
+            if(snap.empty) list.innerHTML = "<p style='color:#ccc'>No pending deposits.</p>";
             snap.forEach(docSnap => {
                 const d = docSnap.data();
-                const id = docSnap.id;
-                const time = d.timestamp ? d.timestamp.toDate().toLocaleString() : "...";
-                
+                // Pass 'DEPOSIT' and 0 (no refund needed)
                 list.innerHTML += `
                     <div class="item">
-                        <div class="info">
-                            <b>${d.email}</b><br>
-                            UID: <span style="font-family:monospace; font-size:0.8rem">${d.userId}</span><br>
-                            Ref: <b style="background:yellow; padding:2px;">${d.refNo}</b>
-                            <div class="time">${time}</div>
-                        </div>
-                        <div style="text-align:right">
-                            <div class="price">+${d.amount} G</div>
-                            <div class="actions">
-                                <button class="btn-approve" onclick="window.processDeposit('${id}', '${d.userId}', ${d.amount})">✔ Confirm</button>
-                                <button class="btn-deny" onclick="window.rejectRequest('${id}')">✖ Deny</button>
-                            </div>
+                        <div class="price">+${d.amount} G</div>
+                        <div class="info"><b>${d.email}</b><br>Ref: <b style="background:yellow; padding:2px;">${d.refNo}</b></div>
+                        <div class="actions">
+                            <button class="btn-approve" onclick="window.processDeposit('${docSnap.id}', '${d.userId}', ${d.amount})">✔ Confirm</button>
+                            <button class="btn-deny" onclick="window.rejectRequest('${docSnap.id}', 'DEPOSIT', '${d.userId}', 0)">✖ Deny</button>
                         </div>
                     </div>`;
             });
         });
 
-        // 2. WATCH ORDERS
+        // 2. ORDERS
         const qOrd = query(collection(db, "requests"), where("type", "==", "ORDER"), where("status", "==", "PROCESSING"), orderBy("timestamp", "desc"));
         onSnapshot(qOrd, (snap) => {
             const list = document.getElementById('order-list');
             list.innerHTML = "";
-            if(snap.empty) list.innerHTML = "<p style='text-align:center; color:#ccc'>No new orders.</p>";
-            
+            if(snap.empty) list.innerHTML = "<p style='color:#ccc'>No new orders.</p>";
             snap.forEach(docSnap => {
                 const d = docSnap.data();
-                const id = docSnap.id;
-                const time = d.timestamp ? d.timestamp.toDate().toLocaleString() : "...";
-                
+                // Pass 'ORDER' and d.price (Refund Price)
                 list.innerHTML += `
                     <div class="item">
-                        <div class="info">
-                            <b>${d.game}</b> (${d.item})<br>
-                            Player ID: <b>${d.playerId}</b><br>
-                            Zone: <b>${d.zoneId}</b>
-                            <div class="time">${time}</div>
+                        <div class="price" style="color:#333">${d.price} G</div>
+                        <div class="info"><b>${d.game}</b> (${d.item})<br>UID: <b>${d.playerId}</b> | Zone: ${d.zoneId}</div>
+                        <div class="actions">
+                            <button class="btn-approve" style="background:var(--primary)" onclick="window.completeOrder('${docSnap.id}')">✔ Sent</button>
+                            <button class="btn-deny" onclick="window.rejectRequest('${docSnap.id}', 'ORDER', '${d.userId}', ${d.price})">✖ Reject</button>
                         </div>
-                        <div style="text-align:right">
-                            <div class="price" style="color:#333">${d.price} G</div>
-                            <div class="actions">
-                                <button class="btn-approve" style="background:var(--primary)" onclick="window.completeOrder('${id}')">✔ Sent</button>
-                                <button class="btn-deny" onclick="window.rejectRequest('${id}')">✖ Reject</button>
-                            </div>
+                    </div>`;
+            });
+        });
+
+        // 3. TRANSFERS
+        const qTrans = query(collection(db, "requests"), where("type", "==", "TRANSFER"), where("status", "==", "PROCESSING"), orderBy("timestamp", "desc"));
+        onSnapshot(qTrans, (snap) => {
+            const list = document.getElementById('transfer-list');
+            list.innerHTML = "";
+            if(snap.empty) list.innerHTML = "<p style='color:#ccc'>No transfers.</p>";
+            snap.forEach(docSnap => {
+                const d = docSnap.data();
+                // Pass 'TRANSFER' and d.amount (Refund Amount)
+                list.innerHTML += `
+                    <div class="item">
+                        <div class="price" style="color:blue">${d.amount} G</div>
+                        <div class="info">
+                            From: <b>${d.email}</b><br>
+                            To: <b style="background:#e0f7fa; padding:2px;">${d.target}</b>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-approve" onclick="window.processTransfer('${docSnap.id}', '${d.target}', ${d.amount})">✔ Approve</button>
+                            <button class="btn-deny" onclick="window.rejectRequest('${docSnap.id}', 'TRANSFER', '${d.userId}', ${d.amount})">✖ Reject</button>
                         </div>
                     </div>`;
             });
         });
     }
 
-    // --- GLOBAL ACTIONS ---
-    
-    // A. APPROVE DEPOSIT (Adds Money + Closes Ticket)
+    // --- ACTIONS ---
+
+    // A. DEPOSIT
     window.processDeposit = async (reqId, userId, amount) => {
         if(!confirm(`Add ${amount} G to this user?`)) return;
         try {
-            // 1. Add Money
-            await updateDoc(doc(db, "users", userId), {
-                balance: increment(amount)
-            });
-            // 2. Close Ticket
+            await updateDoc(doc(db, "users", userId), { balance: increment(amount) });
             await updateDoc(doc(db, "requests", reqId), { status: "COMPLETED" });
-            alert("Success! Balance Updated.");
         } catch(e) { alert("Error: " + e.message); }
     };
 
-    // B. COMPLETE ORDER (Closes Ticket Only - Money already taken)
+    // B. ORDER
     window.completeOrder = async (reqId) => {
-        try {
-            await updateDoc(doc(db, "requests", reqId), { status: "COMPLETED" });
-        } catch(e) { alert("Error: " + e.message); }
+        try { await updateDoc(doc(db, "requests", reqId), { status: "COMPLETED" }); } 
+        catch(e) { alert("Error: " + e.message); }
     };
 
-    // C. REJECT ANY REQUEST
-    window.rejectRequest = async (reqId) => {
-        if(!confirm("Reject this request?")) return;
+    // C. TRANSFER (P2P)
+    window.processTransfer = async (reqId, targetIdentifier, amount) => {
+        // 1. Find Receiver
+        let targetUid = null;
+        
+        // Check if target is UID
+        const uSnap = await getDoc(doc(db, "users", targetIdentifier));
+        if(uSnap.exists()) { targetUid = targetIdentifier; }
+        else {
+            // Check if target is Email
+            const q = query(collection(db, "users"), where("email", "==", targetIdentifier));
+            const qSnap = await getDocs(q);
+            if(!qSnap.empty) targetUid = qSnap.docs[0].id;
+        }
+
+        if(!targetUid) return alert("Receiver Not Found! Please Reject/Refund.");
+
+        if(confirm(`Transfer ${amount} G to ${targetIdentifier}?`)) {
+            try {
+                // Add money to receiver
+                await updateDoc(doc(db, "users", targetUid), { balance: increment(amount) });
+                // Mark complete
+                await updateDoc(doc(db, "requests", reqId), { status: "COMPLETED" });
+                alert("Transfer Successful!");
+            } catch(e) { alert("Error: " + e.message); }
+        }
+    };
+
+    // D. SMART REJECT (AUTO-REFUND LOGIC)
+    window.rejectRequest = async (reqId, type, userId, refundValue) => {
+        if(!confirm("Reject this request? (Funds will be refunded automatically)")) return;
+        
         try {
+            // 1. If it was an ORDER or TRANSFER, the user already paid. GIVE IT BACK!
+            if(type === "ORDER" || type === "TRANSFER") {
+                if(refundValue > 0) {
+                    await updateDoc(doc(db, "users", userId), { balance: increment(refundValue) });
+                    alert(`Rejected. Refunded ${refundValue} G to the user.`);
+                }
+            }
+
+            // 2. Mark ticket as REJECTED
             await updateDoc(doc(db, "requests", reqId), { status: "REJECTED" });
+
         } catch(e) { alert("Error: " + e.message); }
     };
 
-    // D. USER SEARCH & EDIT
-    let currentEditUid = null;
-    
+    // E. USER SEARCH
     window.searchUser = async () => {
         const input = document.getElementById('search-uid').value.trim();
-        if(!input) return alert("Enter UID or Email");
-        
         let foundDoc = null;
-        
-        // Try searching by Email first (Requires Index, might fail if not set up, so fallback to UID)
         try {
             const q = query(collection(db, "users"), where("email", "==", input));
             const snap = await getDocs(q);
             if(!snap.empty) foundDoc = snap.docs[0];
-        } catch(e) { console.log("Email search failed, trying UID..."); }
-
-        // Try searching by UID
+        } catch(e) {}
         if(!foundDoc) {
             const snap = await getDoc(doc(db, "users", input));
             if(snap.exists()) foundDoc = snap;
         }
-
         if(foundDoc) {
             const data = foundDoc.data();
-            currentEditUid = foundDoc.id;
-            
-            document.getElementById('u-email').innerText = data.email || "No Email";
+            document.getElementById('u-email').innerText = data.email;
             document.getElementById('u-uid').innerText = foundDoc.id;
             document.getElementById('u-bal').innerText = (data.balance || 0) + " G";
-            
             document.getElementById('user-result').style.display = 'block';
-        } else {
-            alert("User not found!");
-            document.getElementById('user-result').style.display = 'none';
-        }
+            window.currentEditUid = foundDoc.id;
+        } else { alert("User not found!"); }
     };
-
+    
     window.updateBalance = async () => {
-        if(!currentEditUid) return;
+        if(!window.currentEditUid) return;
         const newBal = parseInt(document.getElementById('new-bal').value);
-        if(isNaN(newBal)) return alert("Enter a valid number");
-        
-        if(confirm(`Change balance to ${newBal} G?`)) {
-            await updateDoc(doc(db, "users", currentEditUid), { balance: newBal });
-            alert("Balance Updated!");
+        if(confirm(`Update balance?`)) {
+            await updateDoc(doc(db, "users", window.currentEditUid), { balance: newBal });
+            alert("Updated!");
             document.getElementById('u-bal').innerText = newBal + " G";
         }
     };
