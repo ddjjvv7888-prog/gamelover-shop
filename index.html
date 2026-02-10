@@ -306,19 +306,8 @@ auth.onAuthStateChanged(user => {
                     balance: 0, 
                     email: user.email
                 });
-            }
-        }, (error) => {
-            // --- ERROR ALERT ---
-            alert("DATABASE ERROR:\n" + error.message);
-        });
-            } else {
-                // Create doc if it doesn't exist
-                db.collection("users").doc(user.uid).set({
-                    balance: 0, 
-                    email: user.email
-                });
-            }
-        });
+            
+
     } else {
         // Hide buttons if logged out
         document.getElementById('wallet-display').style.display = 'none';
@@ -583,6 +572,7 @@ document.getElementById('register-form').onsubmit = (e) => {
 </body>
 
 </html>
+
 
 
 
