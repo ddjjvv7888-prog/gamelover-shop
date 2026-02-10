@@ -280,18 +280,37 @@ auth.onAuthStateChanged(user => {
         document.getElementById('history-btn').style.display = 'flex';
         document.getElementById('nav-email').innerText = user.email.split('@')[0];
 
-        // 2. LISTEN TO BALANCE & FIX MISSING EMAIL
-        db.collection("users").doc(user.uid).onSnapshot(doc => {
-            if(doc.exists) {
+        // 2. LISTEN TO BALANCE (DEBUG VERSION)
+        db.collection("users").doc(user.uid).onSnapshot((doc) => {
+            console.log("Snapshot received!");
+            
+            if (doc.exists) {
                 const data = doc.data();
+                
+                // --- DEBUG ALERT: TELL ME WHAT YOU SEE ---
+                // This will show exactly what is inside the database file
+                alert("DEBUG DATA:\n" + JSON.stringify(data)); 
+                // -----------------------------------------
+
                 currentBalance = data.balance || 0;
                 document.getElementById('balance-text').innerText = currentBalance + " G";
                 
-                // SELF-HEALING: If email is missing in DB, add it now!
+                // Fix missing email
                 if(!data.email) {
-                    console.log("Fixing missing email...");
                     db.collection("users").doc(user.uid).update({ email: user.email });
                 }
+            } else {
+                alert("DEBUG: Document does not exist yet!");
+                // Create doc if it doesn't exist
+                db.collection("users").doc(user.uid).set({
+                    balance: 0, 
+                    email: user.email
+                });
+            }
+        }, (error) => {
+            // --- ERROR ALERT ---
+            alert("DATABASE ERROR:\n" + error.message);
+        });
             } else {
                 // Create doc if it doesn't exist
                 db.collection("users").doc(user.uid).set({
@@ -564,6 +583,7 @@ document.getElementById('register-form').onsubmit = (e) => {
 </body>
 
 </html>
+
 
 
 
