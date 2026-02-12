@@ -238,6 +238,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
     let currentBalance = 0;
     let selectedGame = null;
     let selectedPrice = 0;
+    let selectedProductId = "";
     let selectedItemName = "";
 
     const games = [
@@ -332,6 +333,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
                 div.classList.add('selected');
                 selectedPrice = item.price;
                 selectedItemName = item.name;
+                selectedProductId = item.id;
             };
             container.appendChild(div);
         });
@@ -423,7 +425,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
             });
             fetch(ROBOT_URL, {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "ORDER", userId: currentUser.uid, email: currentUser.email, game: selectedGame.name, item: selectedItemName, price: selectedPrice, playerId: uid, zoneId: zone || "N/A" })
+                body: JSON.stringify({ type: "ORDER", userId: currentUser.uid, email: currentUser.email, game: selectedGame.name, item: selectedItemName, price: selectedPrice, productid: selectedProductId, playerId: uid, zoneId: zone || "N/A" })
             }).catch(e=>console.log("Robot ping"));
 
             alert("Purchase Successful!");
@@ -522,6 +524,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
 </script>
 </body>
 </html>
+
 
 
 
