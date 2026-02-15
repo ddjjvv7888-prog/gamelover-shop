@@ -229,8 +229,8 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
         appId: "1:782424722391:web:41a9cbbf897c3ad1dd1992"
     };
     
-    const ROBOT_URL = "https://script.google.com/macros/s/ https://script.google.com/macros/s/AKfycbx7ndaxNLnZalezrhEw3a1fhRdFvFrdqN7c9qa55sdSynVJIGeBd_Ys6C6bW6uf-7as0w/exec";;
-
+    // ✅ CORRECT URL (Check your specific ID, make sure it looks like this)
+    const ROBOT_URL = "https://script.google.com/macros/s/AKfycbx7ndaxNLnZalezrhEw3a1fhRdFvFrdqN7c9qa55sdSynVJIGeBd_Ys6C6bW6uf-7as0w/exec";
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -444,15 +444,26 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
                 timestamp: serverTimestamp()
             });
 
-            // Send to Robot
+          // Send to Robot (Google Kitchen)
             fetch(ROBOT_URL, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                mode: "no-cors", // <--- ADD THIS! Important for Google Script
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
-                    type: "ORDER", userId: currentUser.uid, email: currentUser.email, 
-                    game: selectedGame.name, item: selectedItemName, price: safePrice, 
-                    productid: selectedProductId, playerId: uid, zoneId: zone || "N/A" 
+                    type: "ORDER", 
+                    userId: currentUser.uid, 
+                    email: currentUser.email, 
+                    game: selectedGame.name, 
+                    item: selectedItemName, 
+                    price: safePrice, 
+                    productid: selectedProductId, 
+                    playerId: uid, 
+                    zoneId: zone || "N/A",
+                    uuid: "ORD-" + new Date().getTime() // <--- ADD THIS! Unique Order ID
                 })
-            }).catch(e=>console.log("Robot ping"));
+            }).then(() => {
+                console.log("Sent to Kitchen");
+            }).catch(e => console.log("Robot Error: " + e));
 
             alert("Purchase Successful!");
             window.closeModal('game-modal');
@@ -551,6 +562,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
 </script>
 </body>
 </html>
+
 
 
 
