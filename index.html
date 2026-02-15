@@ -404,35 +404,60 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
         finally { document.querySelector('#deposit-modal .btn-primary').innerText = "Request Top Up"; }
     };
 
-    // 5. ORDER
+  // 5. ORDER (FIXED: Forces Number Math)
     window.submitOrder = async () => {
         if(!currentUser) return alert("Login First");
         if(selectedPrice === 0) return alert("Select Item");
+        
         const uid = document.getElementById('player-id').value;
         const zone = document.getElementById('server-id').value;
+        
         if(!uid) return alert("Enter UID");
-        if(currentBalance < selectedPrice) return alert("Insufficient G!");
+
+        // --- BUG FIX START: Force Balance to be a Number ---
+        // This cleans any "Text" balance into a "Math" balance
+        let safeBalance = Number(currentBalance); 
+        let safePrice = Number(selectedPrice);
+
+        if (isNaN(safeBalance)) {
+            safeBalance = 0; // Safety net if balance is totally broken
+        }
+
+        if(safeBalance < safePrice) return alert("Insufficient G! (Balance: " + safeBalance + ")");
+        // --- BUG FIX END ---
 
         try {
             const btn = document.querySelector('#game-modal .btn-primary');
             btn.innerText = "Paying..."; btn.disabled = true;
 
-            await updateDoc(doc(db, "users", currentUser.uid), { balance: increment(-selectedPrice) });
+            // Calculate the new balance manually to ensure it saves as a Number
+            let newBalance = safeBalance - safePrice;
+
+            // Update with the specific number instead of using 'increment'
+            await updateDoc(doc(db, "users", currentUser.uid), { balance: newBalance });
+
             await addDoc(collection(db, "requests"), {
                 userId: currentUser.uid, email: currentUser.email, type: "ORDER",
-                game: selectedGame.name, item: selectedItemName, price: selectedPrice,
+                game: selectedGame.name, item: selectedItemName, price: safePrice,
                 playerId: uid, zoneId: zone || "N/A", status: "PROCESSING",
                 timestamp: serverTimestamp()
             });
+
+            // Send to Robot
             fetch(ROBOT_URL, {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "ORDER", userId: currentUser.uid, email: currentUser.email, game: selectedGame.name, item: selectedItemName, price: selectedPrice, productid: selectedProductId, playerId: uid, zoneId: zone || "N/A" })
+                body: JSON.stringify({ 
+                    type: "ORDER", userId: currentUser.uid, email: currentUser.email, 
+                    game: selectedGame.name, item: selectedItemName, price: safePrice, 
+                    productid: selectedProductId, playerId: uid, zoneId: zone || "N/A" 
+                })
             }).catch(e=>console.log("Robot ping"));
 
             alert("Purchase Successful!");
             window.closeModal('game-modal');
-        } catch(e) { alert("Error: "+e.message); }
-        finally { 
+        } catch(e) { 
+            alert("Error: "+e.message); 
+        } finally { 
             const btn = document.querySelector('#game-modal .btn-primary');
             btn.innerText = "Pay with G Currency"; btn.disabled = false;
         }
@@ -525,6 +550,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
 </script>
 </body>
 </html>
+
 
 
 
