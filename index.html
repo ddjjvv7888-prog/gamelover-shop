@@ -488,36 +488,6 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
         }
     };
 
-          // Send to Robot (Google Kitchen)
-            fetch(ROBOT_URL, {
-                method: "POST", 
-                mode: "no-cors", // <--- ADD THIS! Important for Google Script
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    type: "ORDER", 
-                    userId: currentUser.uid, 
-                    email: currentUser.email, 
-                    game: selectedGame.name, 
-                    item: selectedItemName, 
-                    price: safePrice, 
-                    productid: selectedProductId, 
-                    playerId: uid, 
-                    zoneId: zone || "N/A",
-                    uuid: "ORD-" + new Date().getTime() // <--- ADD THIS! Unique Order ID
-                })
-            }).then(() => {
-                console.log("Sent to Kitchen");
-            }).catch(e => console.log("Robot Error: " + e));
-
-            alert("Purchase Successful!");
-            window.closeModal('game-modal');
-        } catch(e) { 
-            alert("Error: "+e.message); 
-        } finally { 
-            const btn = document.querySelector('#game-modal .btn-primary');
-            btn.innerText = "Pay with G Currency"; btn.disabled = false;
-        }
-    };
 
     // 6. TRANSFER (P2P) Logic - STRICT MODE
     window.submitTransfer = async () => {
@@ -606,6 +576,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
 </script>
 </body>
 </html>
+
 
 
 
