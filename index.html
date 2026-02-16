@@ -405,7 +405,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
         finally { document.querySelector('#deposit-modal .btn-primary').innerText = "Request Top Up"; }
     };
 
-  // 5. ORDER (FIXED: Forces Number Math)
+// 5. ORDER (DEBUG VERSION - TELLS THE TRUTH)
     window.submitOrder = async () => {
         if(!currentUser) return alert("Login First");
         if(selectedPrice === 0) return alert("Select Item");
@@ -415,34 +415,78 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
         
         if(!uid) return alert("Enter UID");
 
-        // --- BUG FIX START: Force Balance to be a Number ---
-        // This cleans any "Text" balance into a "Math" balance
+        // Force Balance to be a Number
         let safeBalance = Number(currentBalance); 
         let safePrice = Number(selectedPrice);
-
-        if (isNaN(safeBalance)) {
-            safeBalance = 0; // Safety net if balance is totally broken
-        }
+        if (isNaN(safeBalance)) safeBalance = 0;
 
         if(safeBalance < safePrice) return alert("Insufficient G! (Balance: " + safeBalance + ")");
-        // --- BUG FIX END ---
 
         try {
             const btn = document.querySelector('#game-modal .btn-primary');
-            btn.innerText = "Paying..."; btn.disabled = true;
+            btn.innerText = "Connecting to Kitchen..."; 
+            btn.disabled = true;
 
-            // Calculate the new balance manually to ensure it saves as a Number
-            let newBalance = safeBalance - safePrice;
+            // 1. Prepare the Order
+            const orderPayload = {
+                type: "ORDER", 
+                userId: currentUser.uid, 
+                email: currentUser.email, 
+                game: selectedGame.name, 
+                item: selectedItemName, 
+                price: safePrice, 
+                productid: selectedProductId, 
+                playerId: uid, 
+                zoneId: zone || "N/A",
+                uuid: "ORD-" + Date.now() // Unique Order ID
+            };
 
-            // Update with the specific number instead of using 'increment'
-            await updateDoc(doc(db, "users", currentUser.uid), { balance: newBalance });
+            console.log("🚀 Sending Order to Google:", orderPayload);
 
-            await addDoc(collection(db, "requests"), {
-                userId: currentUser.uid, email: currentUser.email, type: "ORDER",
-                game: selectedGame.name, item: selectedItemName, price: safePrice,
-                playerId: uid, zoneId: zone || "N/A", status: "PROCESSING",
-                timestamp: serverTimestamp()
+            // 2. TALK TO GOOGLE (AND WAIT!)
+            const response = await fetch(ROBOT_URL, {
+                method: "POST", 
+                headers: { "Content-Type": "text/plain;charset=utf-8" }, // 'text/plain' prevents CORS errors in some browsers
+                body: JSON.stringify(orderPayload)
             });
+
+            // 3. READ THE RECEIPT
+            const result = await response.json();
+            console.log("👨‍🍳 KITCHEN RESPONSE:", result);
+
+            // 4. CHECK IF MOOGOLD ACCEPTED IT
+            // We look inside the 'moogold_response' string
+            if (result.status === "success" && !result.moogold_response.includes("error")) {
+                
+                // ONLY DEDUCT MONEY IF SUCCESSFUL
+                let newBalance = safeBalance - safePrice;
+                await updateDoc(doc(db, "users", currentUser.uid), { balance: newBalance });
+                
+                await addDoc(collection(db, "requests"), {
+                    ...orderPayload,
+                    status: "COMPLETED", // We know it worked!
+                    moogold_ref: result.moogold_response,
+                    timestamp: serverTimestamp()
+                });
+
+                alert("✅ Purchase Successful! Server said: " + result.moogold_response);
+                window.closeModal('game-modal');
+
+            } else {
+                // MOOGOLD FAILED
+                console.error("❌ MooGold Error:", result.moogold_response);
+                alert("❌ Order Failed! Reason: " + result.moogold_response);
+                // Do NOT deduct balance
+            }
+
+        } catch(e) { 
+            console.error("💥 System Error:", e);
+            alert("Error: "+e.message); 
+        } finally { 
+            const btn = document.querySelector('#game-modal .btn-primary');
+            btn.innerText = "Pay with G Currency"; btn.disabled = false;
+        }
+    };
 
           // Send to Robot (Google Kitchen)
             fetch(ROBOT_URL, {
@@ -562,6 +606,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
 </script>
 </body>
 </html>
+
 
 
 
