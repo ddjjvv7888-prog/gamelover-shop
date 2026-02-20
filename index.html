@@ -453,10 +453,8 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
             // 3. READ THE RECEIPT
             const result = await response.json();
             console.log("👨‍🍳 KITCHEN RESPONSE:", result);
-
-            // 4. CHECK IF MOOGOLD ACCEPTED IT
-            // We look inside the 'moogold_response' string
-            if (result.status === "success" && !result.moogold_response.includes("error")) {
+// 4. CHECK IF MAKE.COM ACCEPTED IT
+            if (result.status === "success" && result.make_response) {
                 
                 // ONLY DEDUCT MONEY IF SUCCESSFUL
                 let newBalance = safeBalance - safePrice;
@@ -464,19 +462,18 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
                 
                 await addDoc(collection(db, "requests"), {
                     ...orderPayload,
-                    status: "COMPLETED", // We know it worked!
-                    moogold_ref: result.moogold_response,
+                    status: "COMPLETED", 
+                    moogold_ref: result.make_response,
                     timestamp: serverTimestamp()
                 });
 
-                alert("✅ Purchase Successful! Server said: " + result.moogold_response);
+                alert("✅ Purchase Request Sent! Make.com said: " + result.make_response);
                 window.closeModal('game-modal');
 
             } else {
-                // MOOGOLD FAILED
-                console.error("❌ MooGold Error:", result.moogold_response);
-                alert("❌ Order Failed! Reason: " + result.moogold_response);
-                // Do NOT deduct balance
+                // FAILED
+                console.error("❌ Error:", result);
+                alert("❌ Order Failed! Reason: " + (result.message || result.make_response));
             }
 
         } catch(e) { 
@@ -576,6 +573,7 @@ input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #eee; borde
 </script>
 </body>
 </html>
+
 
 
 
